@@ -1,0 +1,141 @@
+# DEFAULT
+spring:
+  mvc:
+    servlet:
+      path: /api/submission-service/v1
+    log-request-details: false
+    log-resolved-exception: false
+  jpa:
+    hibernate.ddl-auto: none
+    show-sql: false
+    open-in-view: false
+
+server:
+  port: 8080
+  # request size bigger because headers
+  max-file-size-MB: 1024
+  max-request-size-MB: 1025
+
+s3-bucket:
+  in-review: ${InReviewS3Bucket}
+  approved: ${ApprovedS3Bucket}
+  mta-forms: ${MtaFormBucket}
+  sftp-ingest: ${SFTPIngestBucket}
+  upload-portal: ${UploadPortalBucket}
+
+s3:
+  download-directory: "workingDirectory/"
+
+radx:
+  pii-queue: ${PiiQueue}
+  supportEmail: ${supportEmail}
+  emailQueue: ${EmailQueue}
+  stakeholder-emails-study-reg: ${StakeholderEmailsStudyReg}
+  host-url: ${HostURL}
+  accountNumber: ${accountId}
+  stepFnMachineArn: ${StepFunctionMachineArn}
+
+management:
+  endpoint:
+    health:
+      enabled: true
+      show-details: never
+  endpoints:
+    enabled-by-default: false
+    web:
+      exposure:
+        include: health
+
+logging:
+  level:
+    root: warn
+    ex.org.project.submissionService:
+      SubmissionServiceApplication: info
+    org.springframework.web.servlet:
+      DispatcherServlet: trace
+      mvc.method.annotation:
+        HttpEntityMethodProcessor: trace
+
+# RAS configuration
+ras:
+  url: ${rasurl}
+  client:
+    id: ${rasclientid}
+    secret: ${rasclientsecret}
+
+---
+# LOCAL
+
+spring:
+  config:
+    activate:
+      on-profile: local
+  jpa:
+    show-sql: true
+  datasource:
+    url: jdbc:postgresql://radx-dev-postgresql.cxew5pn6q5af.us-east-2.rds.amazonaws.com:5432/RADx_dev
+    username: ${db_username}
+    password: ${db_password}
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  pattern:
+    console: "[%boldMagenta(SUBMISSION)] [%boldGreen(LOCAL)] %d{yyyy-MM-dd HH:mm:ss.SSS} %highlight([%5p]) --- [%cyan(%15.15t)] %-40.40logger{1.} %boldYellow(::) %m%n%wEx"
+---
+# DEV
+
+spring:
+  config:
+    import: aws-secretsmanager:application_dev
+    activate:
+      on-profile: dev
+  jpa:
+    show-sql: true
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+
+logging:
+  level:
+      root: warn
+      ex.org.project.submissionService:
+        SubmissionServiceApplication: info
+      org.springframework.web.servlet:
+        DispatcherServlet: warn
+        mvc.method.annotation:
+          HttpEntityMethodProcessor: warn
+          
+  pattern:
+    console: "[SUBMISSION] [TEST] %d{yyyy-MM-dd HH:mm:ss.SSS} [%5p] --- [%15.15t] %-40.40logger{1.} :: %m%n%wEx"
+
+---
+# TEST
+
+spring:
+  config:
+    import: aws-secretsmanager:application_test
+    activate:
+      on-profile: test
+
+logging:
+  pattern:
+    console: "[SUBMISSION] [TEST] %d{yyyy-MM-dd HH:mm:ss.SSS} [%5p] --- [%15.15t] %-40.40logger{1.} :: %m%n%wEx"
+---
+# PROD
+
+spring:
+  config:
+    import: aws-secretsmanager:application_prod
+    activate:
+      on-profile: prod
+
+logging:
+  pattern:
+    console: "[SUBMISSION] [PROD] %d{yyyy-MM-dd HH:mm:ss.SSS} [%5p] --- [%15.15t] %-40.40logger{1.} :: %m%n%wEx"
