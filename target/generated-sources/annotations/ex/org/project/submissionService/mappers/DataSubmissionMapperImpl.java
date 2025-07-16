@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-07-09T16:48:24-0700",
-    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.42.50.v20250628-1110, environment: Java 21.0.7 (Eclipse Adoptium)"
+    date = "2025-07-15T14:01:27-0700",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.14 (Oracle Corporation)"
 )
 @Component
 public class DataSubmissionMapperImpl implements DataSubmissionMapper {
@@ -25,11 +25,11 @@ public class DataSubmissionMapperImpl implements DataSubmissionMapper {
 
         DataSubmissionDTO dataSubmissionDTO = new DataSubmissionDTO();
 
-        dataSubmissionDTO.setCreatedAt( viewStudy.getCreatedAt() );
-        dataSubmissionDTO.setDCC( viewStudy.getDCC() );
-        dataSubmissionDTO.setPhs( viewStudy.getPhs() );
         dataSubmissionDTO.setStudyId( viewStudy.getStudyId() );
         dataSubmissionDTO.setStudyName( viewStudy.getStudyName() );
+        dataSubmissionDTO.setPhs( viewStudy.getPhs() );
+        dataSubmissionDTO.setDCC( viewStudy.getDCC() );
+        dataSubmissionDTO.setCreatedAt( viewStudy.getCreatedAt() );
         dataSubmissionDTO.setSubmissionStatus( viewStudy.getSubmissionStatus() );
 
         return dataSubmissionDTO;
@@ -59,9 +59,9 @@ public class DataSubmissionMapperImpl implements DataSubmissionMapper {
 
         if ( viewStudy != null ) {
             dataSubmissionDTO.setStudyId( viewStudy.getStudyId() );
-            dataSubmissionDTO.setDCC( viewStudy.getDCC() );
-            dataSubmissionDTO.setPhs( viewStudy.getPhs() );
             dataSubmissionDTO.setStudyName( viewStudy.getStudyName() );
+            dataSubmissionDTO.setPhs( viewStudy.getPhs() );
+            dataSubmissionDTO.setDCC( viewStudy.getDCC() );
         }
         if ( dataSubmission != null ) {
             dataSubmissionDTO.setCreatedAt( dataSubmission.getCreatedAt() );

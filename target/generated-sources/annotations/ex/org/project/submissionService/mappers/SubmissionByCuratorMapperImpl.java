@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-07-09T16:48:24-0700",
-    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.42.50.v20250628-1110, environment: Java 21.0.7 (Eclipse Adoptium)"
+    date = "2025-07-15T14:01:27-0700",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.14 (Oracle Corporation)"
 )
 @Component
 public class SubmissionByCuratorMapperImpl implements SubmissionByCuratorMapper {
@@ -21,8 +21,8 @@ public class SubmissionByCuratorMapperImpl implements SubmissionByCuratorMapper 
 
         DetailsDTO detailsDTO = new DetailsDTO();
 
-        detailsDTO.setPhs( viewStudies.getPhs() );
         detailsDTO.setStudyName( viewStudies.getStudyName() );
+        detailsDTO.setPhs( viewStudies.getPhs() );
 
         return detailsDTO;
     }

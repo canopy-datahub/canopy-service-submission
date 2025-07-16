@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-07-09T16:48:24-0700",
-    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.42.50.v20250628-1110, environment: Java 21.0.7 (Eclipse Adoptium)"
+    date = "2025-07-15T14:01:27-0700",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.14 (Oracle Corporation)"
 )
 @Component
 public class UserFileUploadMapperImpl implements UserFileUploadMapper {
@@ -28,10 +28,10 @@ public class UserFileUploadMapperImpl implements UserFileUploadMapper {
         uploadPortalCuratorDashboardDTO.setUploadBy( userFileUploadUploadUserFullName( userFileUpload ) );
         uploadPortalCuratorDashboardDTO.setStudy( userFileUploadViewStudyPhsTitle( userFileUpload ) );
         uploadPortalCuratorDashboardDTO.setIsDeleted( UserFileUploadMapper.isDeleted( userFileUpload.getS3File() ) );
-        uploadPortalCuratorDashboardDTO.setDeleteAt( userFileUpload.getDeleteAt() );
-        uploadPortalCuratorDashboardDTO.setDownloadAt( userFileUpload.getDownloadAt() );
         uploadPortalCuratorDashboardDTO.setId( userFileUpload.getId() );
         uploadPortalCuratorDashboardDTO.setUploadAt( userFileUpload.getUploadAt() );
+        uploadPortalCuratorDashboardDTO.setDownloadAt( userFileUpload.getDownloadAt() );
+        uploadPortalCuratorDashboardDTO.setDeleteAt( userFileUpload.getDeleteAt() );
 
         return uploadPortalCuratorDashboardDTO;
     }

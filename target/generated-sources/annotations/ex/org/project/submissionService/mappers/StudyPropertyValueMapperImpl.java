@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-07-09T16:48:24-0700",
-    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.42.50.v20250628-1110, environment: Java 21.0.7 (Eclipse Adoptium)"
+    date = "2025-07-15T14:01:27-0700",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.14 (Oracle Corporation)"
 )
 @Component
 public class StudyPropertyValueMapperImpl implements StudyPropertyValueMapper {
@@ -49,10 +49,10 @@ public class StudyPropertyValueMapperImpl implements StudyPropertyValueMapper {
         StudyPropertyValue studyPropertyValue = new StudyPropertyValue();
 
         studyPropertyValue.setPropertyValue( spvDto.value() );
-        studyPropertyValue.setEntityProperty( dtoToEntityProperty( spvDto.entityProperty() ) );
         studyPropertyValue.setId( spvDto.id() );
-        studyPropertyValue.setShouldBeRemoved( spvDto.shouldBeRemoved() );
+        studyPropertyValue.setEntityProperty( dtoToEntityProperty( spvDto.entityProperty() ) );
         studyPropertyValue.setValueIndex( spvDto.valueIndex() );
+        studyPropertyValue.setShouldBeRemoved( spvDto.shouldBeRemoved() );
 
         return studyPropertyValue;
     }

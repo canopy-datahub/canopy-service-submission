@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-07-09T16:48:24-0700",
-    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.42.50.v20250628-1110, environment: Java 21.0.7 (Eclipse Adoptium)"
+    date = "2025-07-15T14:01:27-0700",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.14 (Oracle Corporation)"
 )
 @Component
 public class DataFileMapperImpl implements DataFileMapper {
@@ -102,14 +102,14 @@ public class DataFileMapperImpl implements DataFileMapper {
 
         DataFileDTO dataFileDTO = new DataFileDTO();
 
-        dataFileDTO.setFileCategory( map( dataFile.getFileCategory() ) );
-        dataFileDTO.setFileSize( dataFile.getFileSize() );
         dataFileDTO.setId( dataFile.getId() );
-        dataFileDTO.setNormalizedFileName( dataFile.getNormalizedFileName() );
-        dataFileDTO.setSourceFileName( dataFile.getSourceFileName() );
         dataFileDTO.setSubmissionId( dataFile.getSubmissionId() );
-        dataFileDTO.setValidationAcknowledged( dataFile.getValidationAcknowledged() );
+        dataFileDTO.setSourceFileName( dataFile.getSourceFileName() );
+        dataFileDTO.setNormalizedFileName( dataFile.getNormalizedFileName() );
         dataFileDTO.setVersionNumber( dataFile.getVersionNumber() );
+        dataFileDTO.setFileSize( dataFile.getFileSize() );
+        dataFileDTO.setValidationAcknowledged( dataFile.getValidationAcknowledged() );
+        dataFileDTO.setFileCategory( map( dataFile.getFileCategory() ) );
 
         return dataFileDTO;
     }

@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-07-09T16:48:24-0700",
-    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.42.50.v20250628-1110, environment: Java 21.0.7 (Eclipse Adoptium)"
+    date = "2025-07-15T14:01:27-0700",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 17.0.14 (Oracle Corporation)"
 )
 @Component
 public class S3FileMapperImpl implements S3FileMapper {
@@ -21,11 +21,11 @@ public class S3FileMapperImpl implements S3FileMapper {
 
         S3FileDTO s3FileDTO = new S3FileDTO();
 
-        s3FileDTO.setChecksumHash( file.getChecksumHash() );
         s3FileDTO.setFileName( file.getFileName() );
+        s3FileDTO.setChecksumHash( file.getChecksumHash() );
         s3FileDTO.setFileSize( file.getFileSize() );
-        s3FileDTO.setUploadErrorDescription( file.getUploadErrorDescription() );
         s3FileDTO.setUploadSuccessful( file.getUploadSuccessful() );
+        s3FileDTO.setUploadErrorDescription( file.getUploadErrorDescription() );
 
         return s3FileDTO;
     }
