@@ -33,9 +33,9 @@ public class StudyRegistrationController {
 
     @PostMapping("/create")
     public ResponseEntity<Map<String, Integer>> uploadNewStudy(@CookieValue(value="chocolateChip", required = false) String sessionId,
-                                                               @RequestParam("file") MultipartFile file) {
+                                                               @RequestBody StudyRegistrationDTO studyRegistrationDTO) {
         Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
-        return new ResponseEntity<>(studyRegistrationService.registerNewStudy(file, userId), HttpStatus.CREATED);
+        return new ResponseEntity<>(studyRegistrationService.registerNewStudy(studyRegistrationDTO, userId), HttpStatus.CREATED);
     }
 
     @GetMapping("/getValues")
