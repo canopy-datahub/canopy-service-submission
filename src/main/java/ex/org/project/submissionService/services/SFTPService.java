@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -141,7 +142,7 @@ public class SFTPService {
         Map<String, String> props = new HashMap<>();
         String phsNumbers = String.join(";", sftpUploadInfo.getStudies());
         props.put("phsNumbers", phsNumbers);
-        emailRequestService.sendSftpEmail(SftpEmailType.SFTP_PROCESSED, sftpUploadInfo.getUser(), props);
+        // emailRequestService.sendSftpEmail(SftpEmailType.SFTP_PROCESSED, sftpUploadInfo.getUser(), props);
         //trigger default bundling for each submission
         try {
             for (Integer submissionId : sftpSubmissions) {
@@ -163,11 +164,14 @@ public class SFTPService {
                             //update UI step from bundle --> validate step and validate files in submission
                             String bundleStepdescription = "Bundle Files";
                             bundleService.updateStepId(sftpBundles.getSubmissionId(), bundleStepdescription, userId);
-                            boolean validated = validationService.validateFiles(submissionId);
-                            if (validated) {
-                                //update submission validated to true
-                                validationService.updateSubmissionIsValidated(submissionId, true);
-                            }
+
+                            // boolean validated = validationService.validateFiles(submissionId);
+                            // if (validated) {
+                            //     //update submission validated to true
+                            //     validationService.updateSubmissionIsValidated(submissionId, true);
+                            // }
+
+                            validationService.updateSubmissionIsValidated(submissionId, true);
                         } catch (ValidationErrorException | IllegalArgumentException e) {
                             log.info("An error occurred while validating files for sftp processing: " + e.getMessage());
                             return false;
@@ -208,6 +212,7 @@ public class SFTPService {
         String folderName = StringUtils.substringAfterLast(zipFileKey, "/");
 
         String sftpPath = StringUtils.substringBeforeLast(zipFileKey, "/");
+        System.out.println("sftpPath: " + sftpPath);
         Users user = usersRepository.findUsersBySftpPathEqualsIgnoreCase(sftpPath).get();
         if(sftpUploadInfo.getUser() == null) {
             sftpUploadInfo.setUser(user);

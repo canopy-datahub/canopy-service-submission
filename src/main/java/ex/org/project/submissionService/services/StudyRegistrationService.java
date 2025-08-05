@@ -61,36 +61,22 @@ public class StudyRegistrationService {
     private static final List<String> DCC_PROPERTY_SOURCES = List.of(" Hub Online Submission");
 
     /**
-     * Register a new study based on the MTA form PDF
+     * Register a new study based on the study registration form
      *
-     * @param file filled out MTA form PDF
+     * @param studyRegistrationDTO DTO containing any Study Property Value curator added during study registration
      * @return the id of the newly created study
      */
     @Transactional
-    public Map<String, Integer> registerNewStudy(MultipartFile file, Integer userId) {
-        if (file.getContentType() == null || !file.getContentType().equals("application/pdf")) {
-            throw new PdfParsingException("Uploaded file is not a PDF");
-        }
-        Map<String, String> filenameMatches = parseFileName(file.getOriginalFilename());
-        Study study = createStudy(filenameMatches.get("dcc"), file.getOriginalFilename(), userId);
-        String filePath = storageService.uploadMtaForm(file, study.getUuid());
-        study.setFileUrl(filePath);
-        studyRepository.save(study);
+    public Map<String, Integer> registerNewStudy(StudyRegistrationDTO studyRegistrationDTO, Integer userId) {
+        Study study = createStudy(studyRegistrationDTO, userId);
 
+        //have a new StudyRegistrationDTO instance that has the study id
         Integer studyId = study.getId();
-        StudyPropertyValue phsPropertyValue = createPhsNumberPropertyValue(filenameMatches.get("phs"), studyId, userId);
-        StudyPropertyValue dccPropertyValue = createPropertyValue(studyId, userId, "dcc", study.getDcc().getName());
-        StudyPropertyValue hasDataFilesPropertyValue = createPropertyValue(studyId, userId, "has_data_files", "No");
+        StudyRegistrationDTO studyRegistrationDTOWithId = new StudyRegistrationDTO(studyId, studyRegistrationDTO.studyPropertyValues());
 
-        Map<String, String> parsedPdfMap = pdfService.parseStudyRegistrationForm(file);
-        List<StudyPropertyValue> propertyValues = mapPdfFieldsToStudyPropertyValues(studyId, parsedPdfMap, userId);
-        List<StudyPropertyValue> allPropertyValues = new ArrayList<>(propertyValues);
-        allPropertyValues.add(phsPropertyValue);
-        allPropertyValues.add(dccPropertyValue);
-        allPropertyValues.add(hasDataFilesPropertyValue);
-        studyPropertyValueRepository.saveAll(allPropertyValues);
+        editStudyPropertyValues(studyRegistrationDTOWithId, "Curator", true, userId);
 
-        emailRequestService.sendStudyRegEmail(studyId, StudyRegEmailType.NEW_STUDY_CREATION);
+//        emailRequestService.sendStudyRegEmail(studyId, StudyRegEmailType.NEW_STUDY_CREATION);
         return Map.of("studyId", studyId);
     }
 
@@ -117,23 +103,12 @@ public class StudyRegistrationService {
      *
      * @return ID of the newly created study
      */
-    private Study createStudy(String dccName, String fileName, Integer userId) {
+    private Study createStudy(StudyRegistrationDTO studyRegistrationDTO, Integer userId) {
         Study study = new Study();
         study.setUuid(UUID.randomUUID().toString());
-        Optional<LkupDCC> dccOpt = dccRepository.findByNameContainingIgnoreCase(dccName);
         LkupStatus status = statusRepository.findByUsageAndName(Constants.USAGE_STUDY, Constants.STATUS_PENDING_DCC_INPUT)
-                .orElseThrow(()  -> new StatusNotFoundException(String.format("Invalid Study Status: %s", Constants.STATUS_PENDING_DCC_INPUT)));
+            .orElseThrow(()  -> new StatusNotFoundException(String.format("Invalid Study Status: %s", Constants.STATUS_PENDING_DCC_INPUT)));
         study.setStatus(status);
-        if (dccOpt.isEmpty()) {
-            throw new PdfParsingException("Could not find valid DCC in file name");
-        }
-        LkupDCC dcc = dccOpt.get();
-        Users submitter = usersRepository.findById(userId).orElseThrow();
-        if(!submitter.getDcc().equals(dcc)) {
-            throw new UserAuthorizationException("User not aligned to DCC: " + dcc.getName());
-        }
-        study.setDcc(dcc);
-        study.setFileName(fileName);
         study.setCreatedAt(Timestamp.from(Instant.now()));
         study.setCreatedBy(userId);
         study = studyRepository.save(study);
@@ -583,14 +558,14 @@ public class StudyRegistrationService {
                 StudyPropertyValue releaseDate = createPropertyValue(study.getId(), userId, "release_date", formatter.format(LocalDate.now()));
                 studyPropertyValueRepository.save(releaseDate);
                 studyRepository.save(study);
-                emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_APPROVAL);
+//                emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_APPROVAL);
             }
             case "DCC" -> {
                 LkupStatus status = statusRepository.findByUsageAndName(Constants.USAGE_STUDY, Constants.STATUS_IN_REVIEW)
                         .orElseThrow(()  -> new StatusNotFoundException(String.format("Could not find study status entity. Invalid Study Status: %s", Constants.STATUS_IN_REVIEW)));
                 study.setStatus(status);
                 studyRepository.save(study);
-                emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_DCC_METADATA);
+//                emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_DCC_METADATA);
             }
             default -> throw new BadDataException("Invalid role when updating study status");
         }
