@@ -57,8 +57,8 @@ public class StudyRegistrationService {
     private final Pattern valueIndexMatcher = Pattern.compile("(\\d+)");
     private final Pattern fileNameMatcher = Pattern.compile("^([^_]+)_phs(\\d+)_([^_]+).*.pdf");
     private static final Integer PHS_DIGIT_LENGTH = 6;
-    private static final List<String> CURATOR_PROPERTY_SOURCES = List.of("dbGaP/MTA", " Hub Online Submission");
-    private static final List<String> DCC_PROPERTY_SOURCES = List.of(" Hub Online Submission");
+    private static final List<String> CURATOR_PROPERTY_SOURCES = List.of("dbGaP/MTA", "Online Submission");
+    private static final List<String> DCC_PROPERTY_SOURCES = List.of("Online Submission");
 
     /**
      * Register a new study based on the study registration form
@@ -74,7 +74,7 @@ public class StudyRegistrationService {
         Integer studyId = study.getId();
         StudyRegistrationDTO studyRegistrationDTOWithId = new StudyRegistrationDTO(studyId, studyRegistrationDTO.studyPropertyValues());
 
-        editStudyPropertyValues(studyRegistrationDTOWithId, "Curator", true, userId);
+        updateStudyPropertyValues(studyRegistrationDTOWithId, "Curator", userId);
 
 //        emailRequestService.sendStudyRegEmail(studyId, StudyRegEmailType.NEW_STUDY_CREATION);
         return Map.of("studyId", studyId);
@@ -82,7 +82,6 @@ public class StudyRegistrationService {
 
     /**
      * Returns all study property values for a specific study
-     *
      * @param studyId ID of the study being returned
      * @return DTO containing all study property values associated with the supplied study ID
      */
@@ -111,6 +110,10 @@ public class StudyRegistrationService {
         study.setStatus(status);
         study.setCreatedAt(Timestamp.from(Instant.now()));
         study.setCreatedBy(userId);
+        //todo: need to change
+        Optional<LkupDCC> dccOpt = dccRepository.findByNameContainingIgnoreCase("RADx-UP");
+        LkupDCC dcc = dccOpt.get();
+        study.setDcc(dcc);
         study = studyRepository.save(study);
         log.info("New study created: {}", study);
         return study;
@@ -465,6 +468,20 @@ public class StudyRegistrationService {
             throw new StudyNotFoundException("No study found with ID: " + studyRegistrationDTO.studyId());
         }
 
+        updateStudyPropertyValues(studyRegistrationDTO, role, userId);
+
+        if (shouldSubmit) {
+            updateStatus(studyOpt.get(), role, userId);
+        }
+        return "Successfully updated property values";
+    }
+
+    public String updateStudyPropertyValues(StudyRegistrationDTO studyRegistrationDTO, String role, Integer userId) {
+        Optional<Study> studyOpt = studyRepository.findById(studyRegistrationDTO.studyId());
+        if (studyOpt.isEmpty()) {
+            throw new StudyNotFoundException("No study found with ID: " + studyRegistrationDTO.studyId());
+        }
+
         List<LkupPropertySource> propertySources = switch (role) {
             case "Curator" -> propertySourceRepository.findAllByNameIn(CURATOR_PROPERTY_SOURCES);
             case "DCC" -> propertySourceRepository.findAllByNameIn(DCC_PROPERTY_SOURCES);
@@ -472,35 +489,36 @@ public class StudyRegistrationService {
         };
 
         List<Integer> sourceIds = propertySources.stream()
-                .map(LkupPropertySource::getId)
-                .toList();
+            .map(LkupPropertySource::getId)
+            .toList();
         List<EntityProperty> studyRegistrationEntityProperties = entityPropertyRepository
-                .findAllByPropertySourceIdIn(sourceIds);
+            .findAllByPropertySourceIdIn(sourceIds);
         Set<Integer> epIds = studyRegistrationEntityProperties.stream()
-                .map(EntityProperty::getId)
-                .collect(Collectors.toSet());
+            .map(EntityProperty::getId)
+            .collect(Collectors.toSet());
 
         // studyRegistrationDTO should only contain entries for spv's that are being modified or added
         List<StudyPropertyValue> propertyValues = studyPropertyValueMapper
-                .dtoListToEntityList(studyRegistrationDTO.studyPropertyValues())
-                .stream()
-                .filter(spv -> spv.getEntityProperty()== null || epIds.contains(spv.getEntityProperty().getId()))
-                .toList();
+            .dtoListToEntityList(studyRegistrationDTO.studyPropertyValues())
+            .stream()
+            .filter(spv -> spv.getEntityProperty()== null || epIds.contains(spv.getEntityProperty().getId()))
+            .toList();
         if(propertyValues.size() != studyRegistrationDTO.studyPropertyValues().size()){
             throw new UserAuthorizationException("User is attempting edits to unauthorized properties");
         }
         //true for property values to delete, false for property values to edit
         Map<Boolean, List<StudyPropertyValue>> shouldBeRemoved = propertyValues.stream()
-                .collect(Collectors.partitioningBy(StudyPropertyValue::getShouldBeRemoved));
+            .collect(Collectors.partitioningBy(StudyPropertyValue::getShouldBeRemoved));
 
         checkForNullEntityProperties(shouldBeRemoved.get(false));
         deleteStudyValueProperties(shouldBeRemoved.get(true));
         List<LkupPropertyCodelistValue> codelistValuesList = codelistValueRepository.findAll();
 
         for (StudyPropertyValue spv : shouldBeRemoved.get(false)) {
+            System.out.println(spv.getEntityProperty().getName());
             Optional<EntityProperty> spvEntityPropertyOpt = studyRegistrationEntityProperties.stream()
-                    .filter(ep -> Objects.equals(ep.getId(), spv.getEntityProperty().getId()))
-                    .findFirst();
+                .filter(ep -> Objects.equals(ep.getId(), spv.getEntityProperty().getId()))
+                .findFirst();
             if (spvEntityPropertyOpt.isEmpty()) {
                 throw new CategoryNotFoundException("No entity property found for study property value: " + spv);
             }
@@ -511,10 +529,6 @@ public class StudyRegistrationService {
             } else {
                 editCodelistedPropertyValue(spv, ep, studyRegistrationDTO.studyId(), codelistValuesList, userId);
             }
-        }
-
-        if (shouldSubmit) {
-            updateStatus(studyOpt.get(), role, userId);
         }
         return "Successfully updated property values";
     }
