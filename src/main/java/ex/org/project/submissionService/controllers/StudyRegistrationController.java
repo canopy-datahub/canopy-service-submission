@@ -31,11 +31,20 @@ public class StudyRegistrationController {
     private final DataFileService datafileService;
     private final UserAuthService authService;
 
-    @PostMapping("/create")
-    public ResponseEntity<Map<String, Integer>> uploadNewStudy(@CookieValue(value="chocolateChip", required = false) String sessionId,
-                                                               @RequestBody StudyRegistrationDTO studyRegistrationDTO) {
+    @PostMapping("/curator/create")
+    public ResponseEntity<Map<String, Integer>> uploadNewStudyAsCurator(@CookieValue(value="chocolateChip", required = false) String sessionId,
+                                                               @RequestBody StudyRegistrationDTO studyRegistrationDTO,
+                                                               @RequestParam Boolean shouldSubmit) {
         Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
-        return new ResponseEntity<>(studyRegistrationService.registerNewStudy(studyRegistrationDTO, userId), HttpStatus.CREATED);
+        return new ResponseEntity<>(studyRegistrationService.registerNewStudy(studyRegistrationDTO, "Curator", userId, shouldSubmit), HttpStatus.CREATED);
+    }
+
+    @PostMapping("/dcc/create")
+    public ResponseEntity<Map<String, Integer>> uploadNewStudy(@CookieValue(value="chocolateChip", required = false) String sessionId,
+                                                               @RequestBody StudyRegistrationDTO studyRegistrationDTO,
+                                                               @RequestParam Boolean shouldSubmit) {
+        Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
+        return new ResponseEntity<>(studyRegistrationService.registerNewStudy(studyRegistrationDTO, "DCC", userId, shouldSubmit), HttpStatus.CREATED);
     }
 
     @GetMapping("/getValues")

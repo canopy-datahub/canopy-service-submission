@@ -10,7 +10,6 @@ import ex.org.project.submissionService.models.*;
 import ex.org.project.submissionService.models.dtos.StudyPropertyValueDTO;
 import ex.org.project.submissionService.models.dtos.StudyRegistrationDTO;
 import ex.org.project.submissionService.models.dtos.UserStudyRegistrationDTO;
-import ex.org.project.submissionService.emails.StudyRegEmailType;
 import ex.org.project.submissionService.repositories.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +28,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 
 @Slf4j
@@ -54,11 +52,12 @@ public class StudyRegistrationService {
     private final EmailRequestService emailRequestService;
     private final UserFileUploadRepository uploadRepository;
 
+    private final String CURATOR = "Curator";
+    private final String DATA_SUBMITTER = "DCC";
     private final Pattern valueIndexMatcher = Pattern.compile("(\\d+)");
     private final Pattern fileNameMatcher = Pattern.compile("^([^_]+)_phs(\\d+)_([^_]+).*.pdf");
     private static final Integer PHS_DIGIT_LENGTH = 6;
-    private static final List<String> CURATOR_PROPERTY_SOURCES = List.of("dbGaP/MTA", "Online Submission");
-    private static final List<String> DCC_PROPERTY_SOURCES = List.of("Online Submission");
+    private static final List<String> PROPERTY_SOURCES = List.of("dbGaP/MTA", "Online Submission");
 
     /**
      * Register a new study based on the study registration form
@@ -67,14 +66,14 @@ public class StudyRegistrationService {
      * @return the id of the newly created study
      */
     @Transactional
-    public Map<String, Integer> registerNewStudy(StudyRegistrationDTO studyRegistrationDTO, Integer userId) {
+    public Map<String, Integer> registerNewStudy(StudyRegistrationDTO studyRegistrationDTO, String role, Integer userId, Boolean shouldSubmit) {
         Study study = createStudy(studyRegistrationDTO, userId);
 
         //have a new StudyRegistrationDTO instance that has the study id
         Integer studyId = study.getId();
         StudyRegistrationDTO studyRegistrationDTOWithId = new StudyRegistrationDTO(studyId, studyRegistrationDTO.studyPropertyValues());
 
-        updateStudyPropertyValues(studyRegistrationDTOWithId, "Curator", userId);
+        updateStudyPropertyValues(studyRegistrationDTOWithId, role, userId, shouldSubmit, true);
 
 //        emailRequestService.sendStudyRegEmail(studyId, StudyRegEmailType.NEW_STUDY_CREATION);
         return Map.of("studyId", studyId);
@@ -468,25 +467,18 @@ public class StudyRegistrationService {
             throw new StudyNotFoundException("No study found with ID: " + studyRegistrationDTO.studyId());
         }
 
-        updateStudyPropertyValues(studyRegistrationDTO, role, userId);
+        updateStudyPropertyValues(studyRegistrationDTO, role, userId, shouldSubmit, false);
 
-        if (shouldSubmit) {
-            updateStatus(studyOpt.get(), role, userId);
-        }
         return "Successfully updated property values";
     }
 
-    public String updateStudyPropertyValues(StudyRegistrationDTO studyRegistrationDTO, String role, Integer userId) {
+    public String updateStudyPropertyValues(StudyRegistrationDTO studyRegistrationDTO, String role, Integer userId, Boolean shouldSubmit, Boolean isNewStudy) {
         Optional<Study> studyOpt = studyRepository.findById(studyRegistrationDTO.studyId());
         if (studyOpt.isEmpty()) {
             throw new StudyNotFoundException("No study found with ID: " + studyRegistrationDTO.studyId());
         }
 
-        List<LkupPropertySource> propertySources = switch (role) {
-            case "Curator" -> propertySourceRepository.findAllByNameIn(CURATOR_PROPERTY_SOURCES);
-            case "DCC" -> propertySourceRepository.findAllByNameIn(DCC_PROPERTY_SOURCES);
-            default -> throw new BadDataException("Invalid editing role");
-        };
+        List<LkupPropertySource> propertySources = propertySourceRepository.findAllByNameIn(PROPERTY_SOURCES);
 
         List<Integer> sourceIds = propertySources.stream()
             .map(LkupPropertySource::getId)
@@ -530,6 +522,9 @@ public class StudyRegistrationService {
                 editCodelistedPropertyValue(spv, ep, studyRegistrationDTO.studyId(), codelistValuesList, userId);
             }
         }
+
+        updateStatus(studyOpt.get(), role, userId, shouldSubmit, isNewStudy);
+
         return "Successfully updated property values";
     }
 
@@ -560,29 +555,43 @@ public class StudyRegistrationService {
      * @param study study being updated
      * @param role  the user role of the submission step
      * @param userId id of user updating status
+     * @param shouldSubmit  true if click submit
+     * @param isNewStudy true if it is a new registered study
      */
-    private void updateStatus(Study study, String role, Integer userId) {
+    private void updateStatus(Study study, String role, Integer userId, Boolean shouldSubmit, Boolean isNewStudy) {
         switch (role) {
-            case "Curator" -> {
-                LkupStatus status = statusRepository.findByUsageAndName(Constants.USAGE_STUDY, Constants.STATUS_APPROVED_STUDY)
-                        .orElseThrow(()  -> new StatusNotFoundException(String.format("Could not find study status entity. Invalid Study Status: %s", Constants.STATUS_APPROVED_STUDY)));
-                study.setStatus(status);
-                //update release date property value
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-                StudyPropertyValue releaseDate = createPropertyValue(study.getId(), userId, "release_date", formatter.format(LocalDate.now()));
-                studyPropertyValueRepository.save(releaseDate);
-                studyRepository.save(study);
-//                emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_APPROVAL);
+            case DATA_SUBMITTER -> {
+                if (shouldSubmit) {
+                    setStudyStatus(study, Constants.STATUS_IN_REVIEW);
+                    // emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_DCC_METADATA);
+                } else if (isNewStudy) {
+                    setStudyStatus(study, Constants.STATUS_SAVED);
+                }
             }
-            case "DCC" -> {
-                LkupStatus status = statusRepository.findByUsageAndName(Constants.USAGE_STUDY, Constants.STATUS_IN_REVIEW)
-                        .orElseThrow(()  -> new StatusNotFoundException(String.format("Could not find study status entity. Invalid Study Status: %s", Constants.STATUS_IN_REVIEW)));
-                study.setStatus(status);
-                studyRepository.save(study);
-//                emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_DCC_METADATA);
+            case CURATOR -> {
+                if(shouldSubmit){
+                    setStudyStatus(study, Constants.STATUS_APPROVED_STUDY);
+                    updateReleaseDate(study, userId);
+                    // emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_APPROVAL);
+                } else if (isNewStudy) { //Save the update
+                    setStudyStatus(study, Constants.STATUS_SAVED);
+                }
             }
             default -> throw new BadDataException("Invalid role when updating study status");
         }
+    }
+
+    private void setStudyStatus(Study study, String statusName) {
+        LkupStatus status = statusRepository.findByUsageAndName(Constants.USAGE_STUDY, statusName)
+            .orElseThrow(() -> new StatusNotFoundException(String.format("Could not find study status entity. Invalid Study Status: %s", statusName)));
+        study.setStatus(status);
+        studyRepository.save(study);
+    }
+
+    private void updateReleaseDate(Study study, Integer userId) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+        StudyPropertyValue releaseDate = createPropertyValue(study.getId(), userId, "release_date", formatter.format(LocalDate.now()));
+        studyPropertyValueRepository.save(releaseDate);
     }
 
     /**
