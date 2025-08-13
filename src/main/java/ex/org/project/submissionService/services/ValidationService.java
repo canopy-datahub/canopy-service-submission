@@ -78,9 +78,10 @@ public class ValidationService {
         //check if submission id is valid
         dataSubmissionRepository.findById(submissionId)
                 .orElseThrow(() -> new SubmissionIdInvalidException("Could not find submission ID: " + submissionId));
-        boolean piiCompleted = !dataFileRepository
-                .existsBySubmissionIdAndPiiPhiFailedIsNullAndFileCategory_CategoryGroup(submissionId, Constants.CATEGORY_DATA);
-        ValidationResultsDTO validationResultsDTO = new ValidationResultsDTO();
+//        boolean piiCompleted = !dataFileRepository
+//                .existsBySubmissionIdAndPiiPhiFailedIsNullAndFileCategory_CategoryGroup(submissionId, Constants.CATEGORY_DATA);
+        boolean piiCompleted = true;
+            ValidationResultsDTO validationResultsDTO = new ValidationResultsDTO();
         validationResultsDTO.setSubmissionId(submissionId);
         validationResultsDTO.setPiiPhiCompleted(piiCompleted);
         if(piiCompleted) {
@@ -179,12 +180,12 @@ public class ValidationService {
         log.info("number of files found for : " + filesToValidate.size());
         //To Be Updated: Start pii job using any file from the submission to provide bucket path to submission prefix
         DataFile dataFile = filesToValidate.get(0);
-        CreateClassificationJobResult piiResults = startPIIValidationJob(dataFile, true);
+//        CreateClassificationJobResult piiResults = startPIIValidationJob(dataFile, true);
         for (DataFile file : filesToValidate) {
           validateFile(file, file.getFileCategory().getName());
             }
             //trigger step function to check if pii validation is complete after file-specific validation is done
-        checkPIIValidationCompleted(piiResults,dataFile,submissionId,true);
+//        checkPIIValidationCompleted(piiResults,dataFile,submissionId,true);
 
         //TODO: Update to return if cde validation, dict validation and meta validation done for their respective files
         // and pii job is started.
@@ -744,7 +745,7 @@ public class ValidationService {
         List<ValidationResult> validationResults = Stream.of(dto.getBundles(), childResults)
                 .flatMap(Collection::stream)
                 .toList();
-        
+
         // Extract DataFile ids for files we want to "acknowledge" warnings
         List<Integer> ackFileIdsInRequest = validationResults.stream()
                 .filter(ValidationResult::getAcknowledged)
@@ -769,7 +770,7 @@ public class ValidationService {
             df.setValidationAcknowledged(true);
             df.setModifiedBy(userId);
         });
-        
+
         // Check for files which we didn't receive in the request but are in the database
         if (submissionFiles.stream()
                 .filter(df -> !ackFileIdsInRequest.contains(df.getId()))

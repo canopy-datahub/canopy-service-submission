@@ -88,7 +88,7 @@ public class CDEValidator {
 
 
         //populate map with program --> {valid CDE header: valid responses string}
-        validResponsesMap = getValidResponses(programValidValues, "custom");
+//        validResponsesMap = getValidResponses(programValidValues, "custom");
         globalValidResponsesMap = getValidResponses(globalprogramValues, "global");
     }
 

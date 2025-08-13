@@ -37,6 +37,7 @@ public class CuratorController {
 	@GetMapping("/getFilesBySubm")
 	public ResponseEntity<DetailsDTO> getFiles(@CookieValue(value="chocolateChip", required = false) String sessionId,
 											   @RequestParam("submissionId") Integer submissionId) {
+		System.out.println("Raw submissionId parameter: " + submissionId);
 		authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
 		return ResponseEntity.ok(approvalService.getSubmissionBundleInfo(submissionId));
 	}

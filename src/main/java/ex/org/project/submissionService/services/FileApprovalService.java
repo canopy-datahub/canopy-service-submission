@@ -107,12 +107,12 @@ public class FileApprovalService {
 		return viewStudyRepository.findAllById(studyIds).stream()
 				.collect(Collectors.toMap(ViewStudy::getStudyId, vs -> vs));
 	}
-	
+
 	/**
     This method retrieves the data files associated with a given submission ID
     @param submissionId The ID of the submission
     @return A DataFileDTO object representing the data files with versions numbers reflecting
-    		values if the file is approved. 
+    		values if the file is approved.
     */
 	public DetailsDTO getSubmissionBundleInfo(Integer submissionId) {
         DataSubmission dataSubmission = dataSubmissionRepository.findById(submissionId)
@@ -284,7 +284,7 @@ public class FileApprovalService {
 		Map<String, String> props = Map.of("rejectedFiles", rejectedFileNames,
                                            "rejectionReason", rejectionReason,
 										   "approvedFiles", approvedFileNames);
-        emailRequestService.sendDataIngestEmail(submissionId, DataIngestEmailType.SUBMISSION_PROCESSED, props);
+//        emailRequestService.sendDataIngestEmail(submissionId, DataIngestEmailType.SUBMISSION_PROCESSED, props);
 		//To populate variable counts of the approved original data file
 		approvedFiles
 				.forEach(
@@ -372,7 +372,7 @@ public class FileApprovalService {
 	}
 
 	private void setHasDataFilesFlag(Integer studyId) {
-		//hasDataFilesPropertyValue is created and set to no at study creation,
+		//hasDataFilesPropertyValue is created and set to no 4
 		//update has_datafile flag once file is approved
 			StudyPropertyValue studyPropertyValue = studyPropertyValueRepository
 					.findByEntityProperty_NameAndStudyId(Constants.STUDY_PROP_HAS_DATAFILES, studyId);

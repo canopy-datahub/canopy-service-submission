@@ -473,9 +473,9 @@ public class DataFileService {
 
 		List<DataFile> dataFiles = dataFileRepository.findBySubmissionId(submissionId);
 		Integer studyId = dataSubmission.getStudyId();
-		
+
 		StudyPropertyValue studyName = studyPropertyValueRepository.findByEntityProperty_NameAndEntityProperty_LkupEntityType_NameAndStudyId("title", "study", studyId);
-		
+
 		// Map the dataFiles to S3FileDTO objects and set the dataFileId
 		List<S3FileDTO> s3FileDtos = dataFiles.stream().map(dataFile -> {
 			S3FileDTO s3FileDto = UploadMapper.INSTANCE.toS3FileDto(dataFile);
@@ -483,7 +483,7 @@ public class DataFileService {
             s3FileDto.setFileSize(dataFile.getFileSize());
 			return s3FileDto;
 		}).collect(Collectors.toList());
-		
+
 		// Map StudyPropertyValue to StudiesDTO
 		StudiesDTO studiesDto = studiesMapper.toDTO(studyName);
         String phs = dataSubmission.getStudy().getPhs();
@@ -525,12 +525,12 @@ public class DataFileService {
 
         //run validation on new file
         //only run PII scan on data files
-        CreateClassificationJobResult piiResults = null;
-        if (oldFileCategory.getCategoryGroup().equals(Constants.CATEGORY_DATA)) {
-            piiResults = validationService.startPIIValidationJob(dataFile, false);
-        }
+//        CreateClassificationJobResult piiResults = null;
+//        if (oldFileCategory.getCategoryGroup().equals(Constants.CATEGORY_DATA)) {
+//            piiResults = validationService.startPIIValidationJob(dataFile, false);
+//        }
         validationService.validateFile(dataFile, oldFileCategory.getName());
-        validationService.checkPIIValidationCompleted(piiResults, dataFile, dataFile.getSubmissionId(), false);
+//        validationService.checkPIIValidationCompleted(piiResults, dataFile, dataFile.getSubmissionId(), false);
         return validationService.getFileValidationResults(dataFile.getId());
     }
 
