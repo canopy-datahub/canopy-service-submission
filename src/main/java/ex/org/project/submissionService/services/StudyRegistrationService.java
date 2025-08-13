@@ -498,6 +498,14 @@ public class StudyRegistrationService {
         if(propertyValues.size() != studyRegistrationDTO.studyPropertyValues().size()){
             throw new UserAuthorizationException("User is attempting edits to unauthorized properties");
         }
+
+        // For new registered study, need to manually add the property "has_data_files"
+        if(isNewStudy){
+            Integer studyId = studyRegistrationDTO.studyId();
+            StudyPropertyValue hasDataFilesPropertyValue = createPropertyValue(studyId, userId, "has_data_files", "No");
+            studyPropertyValueRepository.save(hasDataFilesPropertyValue);
+        }
+
         //true for property values to delete, false for property values to edit
         Map<Boolean, List<StudyPropertyValue>> shouldBeRemoved = propertyValues.stream()
             .collect(Collectors.partitioningBy(StudyPropertyValue::getShouldBeRemoved));
@@ -716,6 +724,7 @@ public class StudyRegistrationService {
         studyPropertyValue.setStudyId(studyId);
         studyPropertyValue.setPropertyValue(value);
         studyPropertyValue.setCreatedBy(userId);
+        studyPropertyValue.setShouldBeRemoved(false);
         Optional<EntityProperty> ep = entityPropertyRepository.findByName(name);
         if (ep.isEmpty()) {
             throw new CategoryNotFoundException("Could not find entity property");
