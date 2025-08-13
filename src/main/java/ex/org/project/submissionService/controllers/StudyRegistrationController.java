@@ -94,7 +94,8 @@ public class StudyRegistrationController {
     public ResponseEntity<String> deleteStudy(@CookieValue(value="chocolateChip", required = false) String sessionId,
                                                    @RequestParam("studyId") Integer studyId,
                                                   @RequestParam("deleteStudy") Optional<Boolean> deleteStudy) {
-        authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
+        //data submitter is only able to delete the saved(draft) studies
+        authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR, AccessRole.DATA_SUBMITTER));
         //by default this function deletes the files and submissions associated with study.
         datafileService.deleteFilesAndSubmissions(studyId);
         log.info("Successfully deleted files and submissions for study id: " + studyId);
