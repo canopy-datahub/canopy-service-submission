@@ -21,7 +21,6 @@ import java.util.*;
 @Slf4j
 public class CDEValidator {
 
-    private final String program;
     private MultiValuedMap<String, ValidationError> errors;
     private final ValidationResult validationResult;
     private HashMap<String, String> validResponsesMap;
@@ -36,8 +35,7 @@ public class CDEValidator {
     private final HashSet<String> invalidZtca = new HashSet<String>(Arrays.asList("036", "059", " 063", "102", "203", "556", "692", "790", "821", "823", "830", "831", "878", "879",
             "884", "890", "893"));
 
-    public CDEValidator(DataFile dataFile, String program, InputStream object) {
-        this.program = Objects.requireNonNull(program);
+    public CDEValidator(DataFile dataFile, InputStream object) {
         this.object = Objects.requireNonNull(object);
         this.dataFile = Objects.requireNonNull(dataFile);
         this.validationResult = new ValidationResult(dataFile);
@@ -50,7 +48,7 @@ public class CDEValidator {
      * if no tier1 variables are found, that is noted in validation dto
      */
     private void performCDEValidation() {
-        readCodebook(program);
+        readCodebook();
         errors = new ArrayListValuedHashMap<>();
         int parserSize = parseAndValidateCSV();
         //check if records number is greater than or equal to 1
@@ -65,9 +63,8 @@ public class CDEValidator {
 
     /**
      * Read RADx_Global_Codebook and collect valid tier1 headers and responses for specific program
-     * @param program is name of specific program.
      */
-    private void readCodebook(String program) {
+    private void readCodebook() {
 
         InputStream codebook = getCodebookFromResourceAsStream();
         XSSFWorkbook workbook;
@@ -77,18 +74,9 @@ public class CDEValidator {
             throw new CodebookNotFoundException("Unable to read codebook");
         }
 
-        XSSFSheet programValidValues = switch (program) {
-            case "headerUP" -> workbook.getSheet("3_RADx_UP");
-            case "headerrad" -> workbook.getSheet("4_RADx_rad");
-            case "Tech" -> workbook.getSheet("5_RADx_TECH");
-            case "DHT" -> workbook.getSheet("6_Digital Health");
-            default -> throw new IllegalStateException("Unexpected value for Program found: " + program);
-        };
         XSSFSheet globalprogramValues = workbook.getSheet("2_RADx_Global_Codebook");
 
-
         //populate map with program --> {valid CDE header: valid responses string}
-//        validResponsesMap = getValidResponses(programValidValues, "custom");
         globalValidResponsesMap = getValidResponses(globalprogramValues, "global");
     }
 
@@ -114,7 +102,7 @@ public class CDEValidator {
      */
     private Boolean hasTier1Variable(HashSet<String> fileHeaders) {
         if (validResponsesMap == null) {
-            readCodebook(program);
+            readCodebook();
         }
         //get all dcc required tier 1 cde headers for the specific program
         HashSet<String> programTier1 = new HashSet<>(validResponsesMap.keySet());
@@ -124,7 +112,7 @@ public class CDEValidator {
         //collect the file's missing headers
         missingHeaders = new HashSet<>(CollectionUtils.disjunction(programTier1, fileTier1Headers));
         validationResult.setMissingHeaders(missingHeaders);
-        errors.put("missingHeaders", new ValidationError("CDE Validation", missingHeaders.toString(),"Missing Tier1 Headers", null,null,  "File missing required " + program + " Tier1 Headers",
+        errors.put("missingHeaders", new ValidationError("CDE Validation", missingHeaders.toString(),"Missing Tier1 Headers", null,null,  "File missing required Headers",
                 "update file headers"));
 
         //If the file does not have any valid tier 1 cdes then is it not a file valid for cde validation
@@ -140,7 +128,7 @@ public class CDEValidator {
      */
     private HashMap<String, String> getValidResponses(XSSFSheet sheet, String parseType) {
         if (sheet == null) {
-            readCodebook(program);
+            readCodebook();
         }
         HashMap<String, String> validProgramVals = new HashMap<>();
         assert sheet != null;
@@ -182,7 +170,7 @@ public class CDEValidator {
      */
     private HashSet<String> parseValidResponsesString(String validResponse) {
         if (validResponse.isEmpty()) {
-            readCodebook(program);
+            readCodebook();
         }
         HashSet<String> validResponses = new HashSet<>();
         for (String keyValue : validResponse.split(" *; *")) {
@@ -419,7 +407,7 @@ public class CDEValidator {
      * @param status is the status of the validation results
      */
     private void updateValidationDTO(String status) {
-        validationResult.setValidationType(program + " Tier1 Headers Ruleset Validation Result");
+        validationResult.setValidationType("Tier1 Headers Ruleset Validation Result");
         //updates status message only if custom status is not already set
         if(validationResult.getValidationResultsStatus()==null){
             validationResult.setValidationResultsStatus(status);

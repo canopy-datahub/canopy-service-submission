@@ -49,11 +49,8 @@ public class ValidationService {
     private final StudyRepository studyRepository;
     private final DataSubmissionRepository dataSubmissionRepository;
     private final DataFileRepository dataFileRepository;
-    private final S3FileRepository s3FileRepository;
     private final LkupDCCRepository lkupDCCRepository;
     private final AwsStorageService awsStorageService;
-    private final AmazonMacie2 macieClient;
-    private final SfnClient sfnClient;
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
@@ -70,7 +67,7 @@ public class ValidationService {
 
     /**
      * getValidationResults returns a list of all validation results for the files that failed validation in a submission
-     * if any files have not completed validation yet (i.e. pii_phi_failed is null), no results will be returned
+     * if any files have not completed validation yet, no results will be returned
      * @param submissionId is the submission id
      * @return list of ValidationResult
      */
@@ -78,16 +75,12 @@ public class ValidationService {
         //check if submission id is valid
         dataSubmissionRepository.findById(submissionId)
                 .orElseThrow(() -> new SubmissionIdInvalidException("Could not find submission ID: " + submissionId));
-//        boolean piiCompleted = !dataFileRepository
-//                .existsBySubmissionIdAndPiiPhiFailedIsNullAndFileCategory_CategoryGroup(submissionId, Constants.CATEGORY_DATA);
-        boolean piiCompleted = true;
-            ValidationResultsDTO validationResultsDTO = new ValidationResultsDTO();
+
+        ValidationResultsDTO validationResultsDTO = new ValidationResultsDTO();
         validationResultsDTO.setSubmissionId(submissionId);
-        validationResultsDTO.setPiiPhiCompleted(piiCompleted);
-        if(piiCompleted) {
-            List<ValidationResult> bundles = getBundlesValidationResults(submissionId);
-            validationResultsDTO.setBundles(bundles);
-        }
+
+        List<ValidationResult> bundles = getBundlesValidationResults(submissionId);
+        validationResultsDTO.setBundles(bundles);
         return validationResultsDTO;
     }
 
@@ -149,10 +142,6 @@ public class ValidationService {
             else{
                 results = new ValidationResult(dataFile);
             }
-            //if pii validation errors exist, get from db
-            if(dataFile.getPiiPhivalidationResults()!=null){
-                results.setPiiErrors(mapper.readValue(dataFile.getPiiPhivalidationResults(), Map.class));
-            }
             results.setAcknowledged(dataFile.getValidationAcknowledged());
             return results;
 
@@ -178,17 +167,10 @@ public class ValidationService {
         }
 
         log.info("number of files found for : " + filesToValidate.size());
-        //To Be Updated: Start pii job using any file from the submission to provide bucket path to submission prefix
-        DataFile dataFile = filesToValidate.get(0);
-//        CreateClassificationJobResult piiResults = startPIIValidationJob(dataFile, true);
         for (DataFile file : filesToValidate) {
           validateFile(file, file.getFileCategory().getName());
             }
-            //trigger step function to check if pii validation is complete after file-specific validation is done
-//        checkPIIValidationCompleted(piiResults,dataFile,submissionId,true);
 
-        //TODO: Update to return if cde validation, dict validation and meta validation done for their respective files
-        // and pii job is started.
         return true;
     }
 
@@ -202,9 +184,8 @@ public class ValidationService {
         if (!dataFile.getFileCategory().getName().equals(Constants.HARMONIZED_DATAFILE)) {
             return false;
         }
-        String radxProgram = getSubmissionDCC(dataFile.getSubmissionId());
         try {
-            performCDEValidation(dataFile, radxProgram);
+            performCDEValidation(dataFile);
             return true;
         } catch (ValidationErrorException e) {
             return false;
@@ -219,8 +200,7 @@ public class ValidationService {
         try {
             switch (dataFileCategory) {
                 case Constants.HARMONIZED_DATAFILE -> {
-                    String radxProgram = getSubmissionDCC(dataFile.getSubmissionId());
-                    performCDEValidation(dataFile, radxProgram);
+                    performCDEValidation(dataFile);
                 }
                 case Constants.NON_HARMONIZED_DICTFILE , Constants.HARMONIZED_DICTFILE -> performDataDictionaryValidation(dataFile);
                 case Constants.NON_HARMONIZED_METAFILE, Constants.HARMONIZED_METAFILE -> performMetadataValidation(dataFile);
@@ -237,9 +217,8 @@ public class ValidationService {
      * and sets the file headers and validation results on it's datafile object
      *
      * @param dataFile    is the on which to be validated
-     * @param radxProgram is that dcc associated with the current submission
      */
-    private void performCDEValidation(DataFile dataFile, String radxProgram) {
+    private void performCDEValidation(DataFile dataFile) {
         log.info("ABOUT TO PERFORM CDE VALIDATION FOR: " + dataFile.getSourceFileName());
         S3File s3File = dataFile.getS3File();
         if (s3File == null) {
@@ -249,7 +228,7 @@ public class ValidationService {
         InputStream object = Objects.requireNonNull(awsStorageService.getS3FileContent(s3File));
 
         //get s3 file key from path to access file in s3 needed for validation
-        CDEValidator cdeValidator = new CDEValidator(dataFile, radxProgram, object);
+        CDEValidator cdeValidator = new CDEValidator(dataFile, object);
         String  results = null;
         try {
             //get the validation result object from cde validator
@@ -361,282 +340,6 @@ public class ValidationService {
 	}
 
     /**
-     * startPIIValidationJob finds the associated S3 file, and starts a sensitive discovery job on the file
-     * using AWS Macie to scan for pii/phi.
-     * @param dataFile    is the file to be validated
-     */
-    public CreateClassificationJobResult startPIIValidationJob(DataFile dataFile, Boolean submissionLevelScan){
-        log.info("ABOUT TO CREATE SENSITIVE DATA SCAN FOR SUBMISSION "+ dataFile.getSubmissionId());
-        S3File s3File = dataFile.getS3File();
-        if (s3File == null) {
-            throw new DataFileNotFoundException("No S3 file found for ID " + dataFile.getId());
-        }
-        CreateClassificationJobRequest piiAnalysisJobRequest = new CreateClassificationJobRequest();
-        String name;
-        if(submissionLevelScan){
-            name = UUID.randomUUID() + "_" + "test Macie PII Scan for submission: " + dataFile.getSubmissionId();
-        }
-        else{
-            name = UUID.randomUUID() + "_" + "Macie PII Scan for dataFile: " + dataFile.getId();
-            //dataFile level scans are only triggered when files are replaced. Make sure pii flags and results are null
-            dataFile.setPiiPhiFailed(null);
-            dataFile.setPiiPhivalidationResults(null);
-            dataFile = dataFileRepository.saveAndFlush(dataFile);
-        }
-        piiAnalysisJobRequest.setName(name);
-        piiAnalysisJobRequest.withSamplingPercentage(100);
-        List <String>  managedIdentifiers = List.of("ADDRESS","CREDIT_CARD_NUMBER","NAME","PHONE_NUMBER","VEHICLE_IDENTIFICATION_NUMBER","BANK_ACCOUNT_NUMBER","MEDICAL_DEVICE_UDI","DRIVERS_LICENSE","USA_PASSPORT_NUMBER","USA_SOCIAL_SECURITY_NUMBER","USA_HEALTH_INSURANCE_CLAIM_NUMBER","USA_MEDICARE_BENEFICIARY_IDENTIFIER");
-        piiAnalysisJobRequest.setJobType("ONE_TIME");
-        piiAnalysisJobRequest.setManagedDataIdentifierIds(managedIdentifiers);
-        piiAnalysisJobRequest.setManagedDataIdentifierSelector("INCLUDE");
-
-        //create macie analysis job with the file path set as scope of the scan
-        S3JobDefinition s3JobDefinition = new S3JobDefinition();
-        configureS3BucketDefinitionForJob(s3JobDefinition,s3File,submissionLevelScan);
-        piiAnalysisJobRequest.setS3JobDefinition(s3JobDefinition);
-        return macieClient.createClassificationJob(piiAnalysisJobRequest);
-    }
-
-    /**
-     * checkPIIValidationCompleted creates and triggers step function to track PII scan status
-     * Once PII is complete, radx.pii-queue is triggered to populate db with PII scan results
-     * @param dataFile    is the file to be validated
-     */
-    public void checkPIIValidationCompleted(CreateClassificationJobResult piiResults, DataFile dataFile, Integer submissionId, Boolean submissionLevelScan) {
-        //if PII scan was not created, exit function
-        if(piiResults==null){
-            log.info("PII job not created for submission id {} or datafile {}", submissionId, dataFile.getId());
-            return;
-        }
-        dataSubmissionRepository.findById(submissionId)
-                .orElseThrow(() -> new SubmissionIdInvalidException("Could not find submission ID: " + submissionId));
-        //send job id, datafile id and wait time to step function
-        JSONObject sfnInput = new JSONObject();
-        sfnInput.put("jobId", piiResults.getJobId());
-        sfnInput.put("dataFileId", dataFile.getId());
-
-        //set wait to 30 secs to reduce number of lambda calls to populate PII results.
-        sfnInput.put("waitTime", 30);
-        sfnInput.put("submissionId", submissionId);
-        sfnInput.put("submissionLevelScan", submissionLevelScan);
-
-        //trigger step function
-        try {
-            String infoMessage;
-            String requestName;
-            if(submissionLevelScan){
-                requestName = UUID.randomUUID() + "_" + "Macie_Scan_For_SubmissionId_" + submissionId;
-                infoMessage = " running PII Macie Scan for submissionId " + submissionId;
-            }
-            else{
-                requestName = UUID.randomUUID() + "_" + "Macie_Scan_For_dataFileId_" + dataFile.getId();
-                infoMessage = " running PII Macie Scan for dataFileId " + dataFile.getId();
-            }
-
-            StartExecutionRequest executionRequest = StartExecutionRequest.builder()
-                    .input(sfnInput.toString())
-                    .stateMachineArn(machineArn)
-                    .name(requestName)
-                    .build();
-            StartExecutionResponse response = sfnClient.startExecution(executionRequest);
-            if (response.sdkHttpResponse().isSuccessful()) {
-                log.info("triggered step function--{}_{}" , response.sdkHttpResponse().statusCode() , infoMessage );
-            }
-
-        } catch (SfnException e) {
-            log.info("Error occurred when triggering or processing step function for PII validation: {} ", e.awsErrorDetails().errorMessage());
-            throw new ValidationErrorException("Error occurred when triggering or processing step function for PII validation: " + e.awsErrorDetails().errorMessage());
-        }
-    }
-
-    /**
-     * radx.pii-queue listener responds to completion of the step function once the file scan is complete
-     * processMacieScanResults responds to sqs queue that is triggered once sensitive data discovery job is finished for the file
-     * and gets the pii validation results from Macie once sensitive data discovery job is complete
-     * and updates the file metadata and the database as needed
-     * @param message is the message received from sqs
-     */
-    @SqsListener(value = "${radx.pii-queue}")
-    public void processMacieScanResults(Message message){
-        log.info("Messaged received to trigger processing macie scan results : ..." + message.body());
-        JsonNode piiFileDetails = null;
-        try {
-            piiFileDetails = mapper.readTree(message.body());
-        } catch (JsonProcessingException e) {
-            log.info("Unable to process messaged received from PII SQS Queue: "+ e.getMessage());
-            throw new ValidationErrorException("Unable to process messaged received from PII SQS Queue: "+ e.getMessage());
-        }
-        String jobId = piiFileDetails.get("jobId").asText();
-        Integer submissionId = piiFileDetails.get("submissionId").asInt();
-        Boolean submissionLevelScan = piiFileDetails.get("submissionLevelScan").asBoolean();
-        Integer dataFileId = piiFileDetails.get("dataFileId").asInt();
-        log.info("Message details to process macie scan results : ..." + piiFileDetails.toString());
-        getMacieScanFindings(jobId, submissionId,submissionLevelScan, dataFileId);
-
-    }
-
-    /**
-     * getMacieScanFindings gets the occurrences of sensitive data from the findings information and converts the information
-     * into ValidationError objects
-     * @param jobId is the jobId for the sensitive data discovery job
-     * @return errors which is a list of the validation errors based on findings
-     */
-
-    private  void getMacieScanFindings(String jobId, Integer submissionId, Boolean submissionLevelScan, Integer dataFileId){
-        log.info("ABOUT TO GET MACIE SCAN FINDINGS FOR SUBMISSION ID: " +submissionId+ " AND JOB ID "+ jobId);
-        ListFindingsRequest listFindingsRequest = new ListFindingsRequest();
-        FindingCriteria findingCriteria = new FindingCriteria();
-        CriterionAdditionalProperties criterionAdditionalProperties = new CriterionAdditionalProperties();
-        criterionAdditionalProperties.withEq(jobId);
-        findingCriteria.addCriterionEntry("classificationDetails.jobId",criterionAdditionalProperties);
-        listFindingsRequest.withFindingCriteria(findingCriteria);
-
-        ListFindingsResult listFindingsResult = macieClient.listFindings(listFindingsRequest);
-        List <String> findings =  listFindingsResult.getFindingIds();
-
-        if(!findings.isEmpty()){
-            GetFindingsResult getFindingsResult = macieClient.getFindings(new GetFindingsRequest().withFindingIds(findings));
-            List <Finding> macieScanFindings = getFindingsResult.getFindings();
-            //if findings exists process the results
-            if (!macieScanFindings.isEmpty()){
-                log.info("FOUND SENSITIVE MACIE SCAN FINDINGS FOR SUBMISSION ID: " +submissionId+ "JOB ID "+ jobId);
-
-                //get the detailed results location from a macie finding in order to have the bucket details where the results are stored
-                //for this job
-                String detailedResults = macieScanFindings.get(0).getClassificationDetails().getDetailedResultsLocation();
-                List<JsonNode> jsonResults =  awsStorageService.getGZipS3FileContent(detailedResults.replace("s3://",""));
-                jsonResults.forEach(jsonNode -> processJsonResult(jsonNode));
-            }
-        }
-        else{
-            //if there are no findings, the datafile(s) passed pii validation
-            if(submissionLevelScan){
-                boolean piiCompleted = dataFileRepository
-                        .existsBySubmissionIdAndPiiPhiFailedIsNullAndFileCategory_CategoryGroup(submissionId, Constants.CATEGORY_DATA);
-                List<DataFile> dfsPassedPII = dataFileRepository.findDataFilesByFileCategory_CategoryGroupAndSubmissionIdAndPiiPhiFailedIsNull(Constants.CATEGORY_DATA, submissionId);
-                dfsPassedPII.forEach(dataFile -> dataFile.setPiiPhiFailed(false));
-                dataFileRepository.saveAll(dfsPassedPII);
-            }else{
-                DataFile dataFile = dataFileRepository.findById(dataFileId).get();
-                dataFile.setPiiPhiFailed(false);
-                dataFileRepository.save(dataFile);
-            }
-        }
-    }
-
-    /**
-     * processJsonResult finds the associated dataFile and update it's PII validation errors
-     * It is triggered when macie findings exist for scan
-     * @param jsonResults
-     */
-    @Transactional
-    public void processJsonResult(JsonNode jsonResults){
-        String s3FilePath =  jsonResults.get("resourcesAffected").get("s3Object").get("path").asText();
-        //find s3 file by path
-        S3File s3File = s3FileRepository.findS3FileByFilePath(s3FilePath);
-        DataFile dataFile = dataFileRepository.findDataFileByS3FileId(s3File.getId());
-        //only if it is a datafile, save pii failed as true of false, otherwise null
-        if(dataFile.getFileCategory().getCategoryGroup().equals(Constants.CATEGORY_DATA)){
-            //for each line in the zipfile do this.
-            List<ValidationError> scanResults = new ArrayList<>();
-            MultiValuedMap<String, ValidationError> errors = new ArrayListValuedHashMap<>();
-            var sensitiveData = jsonResults.get("classificationDetails").get("result").get("sensitiveData");
-            dataFile.setPiiPhiFailed(!sensitiveData.isEmpty());
-            if(!sensitiveData.isEmpty()){
-                Integer totalPIICount = sensitiveData.get(0).get("totalCount").asInt();
-                try {
-                    ValidationResult results = null;
-                    if(dataFile.getValidationResults()!=null){
-                        results =  mapper.readValue(dataFile.getValidationResults(), ValidationResult.class);
-                        var currentWarningCount = results.getDataEntryWarningCount();
-                        if (currentWarningCount != null){
-                            var totalWarnings = currentWarningCount.intValue() + totalPIICount;
-                            results.setDataEntryWarningCount(totalWarnings);
-                            dataFile.setValidationResults(mapper.writeValueAsString(results));
-                        }
-                    }
-                    else{
-                        results = new ValidationResult(dataFile);
-                        results.setDataEntryWarningCount(totalPIICount);
-                        dataFile.setValidationResults(mapper.writeValueAsString(results));
-                    }
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
-                String message = jsonResults.get("description").asText();
-                String solution = "Please reference our De-Identification Guidance to correctly de-identify data as defined in RADx Requirements.";
-                var details = sensitiveData.get(0).get("detections");
-                details.forEach(jsonNode -> {
-                    var cells = jsonNode.get("occurrences").get("cells");
-                    cells.forEach(cellNode -> scanResults.add(new ValidationError("PERSONAL_INFORMATION",null,jsonNode.get("type").asText(),
-                            cellNode.get("columnName").asText(),cellNode.get("row").asLong(),message,solution)));
-                });
-                if(!scanResults.isEmpty()){
-                    scanResults.forEach(validationError -> errors.put(validationError.getErrorType(), validationError));
-                    try {
-                        //set file's  pii validation results
-                        dataFile.setPiiPhivalidationResults(mapper.writeValueAsString(errors.asMap()));
-                    } catch (JsonProcessingException e) {
-                        throw new ValidationErrorException("Unable to Update PII Validation Results in Database: " + e.getMessage());
-                    }
-                }
-            }
-            dataFileRepository.saveAndFlush(dataFile);
-        }
-    }
-
-    /**
-     * configureS3BucketDefinitionForJob sets scope of the file to analyse
-     * @param s3JobDefinition defines the scope of the file
-     * @param s3File
-     */
-    private void configureS3BucketDefinitionForJob(S3JobDefinition s3JobDefinition, S3File s3File, Boolean submissionLevelScan) {
-        S3BucketDefinitionForJob s3BucketDefinitionForJob = new S3BucketDefinitionForJob();
-        s3File.setS3FileKeyAndBucketFromPath();
-        s3BucketDefinitionForJob.withBuckets(s3File.getFileBucket());
-        s3BucketDefinitionForJob.setAccountId(accountNumber);
-        Scoping scoping = getScoping(s3File, submissionLevelScan);
-        s3JobDefinition.setScoping(scoping);
-        s3JobDefinition.withBucketDefinitions(s3BucketDefinitionForJob);
-    }
-
-    /**
-     * getScoping defines the scope for the classification job to run on file level
-     * @param s3File is the file being scanned
-     */
-    private static Scoping getScoping(S3File s3File, Boolean submissionLevelScan) {
-        Scoping scoping = new Scoping();
-        JobScopingBlock jobScopingBlock= new  JobScopingBlock();
-        SimpleScopeTerm fileScope = new SimpleScopeTerm();
-        //scope scan to file
-        fileScope.setComparator("STARTS_WITH");
-        fileScope.setKey("OBJECT_KEY");
-        if(submissionLevelScan){
-            String submissionPath = s3File.getFileKey().replace(s3File.getFileName(),"");
-            fileScope.withValues(submissionPath);
-        }else{
-            fileScope.withValues(s3File.getFileKey());
-        }
-        JobScopeTerm fileScopeTerm = new JobScopeTerm();
-        fileScopeTerm.setSimpleScopeTerm(fileScope);
-
-        SimpleScopeTerm fileExtensionScope = new SimpleScopeTerm();
-        fileExtensionScope.setComparator("EQ");
-        fileExtensionScope.setKey("OBJECT_EXTENSION");
-        fileExtensionScope.withValues("csv");
-        JobScopeTerm fileExtensionScopeTerm = new JobScopeTerm();
-        fileExtensionScopeTerm.setSimpleScopeTerm(fileExtensionScope);
-
-        List<JobScopeTerm>jobScopeTerms = new ArrayList<>();
-        jobScopeTerms.add(fileScopeTerm);
-        jobScopeTerms.add(fileExtensionScopeTerm);
-
-        jobScopingBlock.withAnd(jobScopeTerms);
-        scoping.setIncludes(jobScopingBlock);
-        return scoping;
-    }
-
-    /**
      * processValidationResultToDTO converts the results from ValidationReport to a Validation Result Object
      * @param dictionaryFile is the validated file
      * @param validationReportResults is the dictionary validator's report results
@@ -710,24 +413,6 @@ public class ValidationService {
     }
 
     /**
-     * getSubmissionDCC gets the RADx DCC associated with submission
-     *
-     * @param submissionId is the submissionId
-     * @return dcc
-     */
-    private String getSubmissionDCC(Integer submissionId) {
-        DataSubmission dataSubmission = dataSubmissionRepository.findById(submissionId)
-                .orElseThrow(() -> new SubmissionIdInvalidException("Could not find submission ID: " + submissionId));
-        Study study = studyRepository.findStudyById(dataSubmission.getStudyId());
-        Optional<LkupDCC> lkupDCC = lkupDCCRepository.findById(Math.toIntExact(study.getDcc().getId()));
-        String dcc = lkupDCC.get().getName();
-        if (dcc.isEmpty()) {
-            throw new BadDataException("Valid DCC not found");
-        }
-        return dcc;
-    }
-
-    /**
      * Updates the validation acknowledgement status of the files in a submission.
      *
      * @param dto The DTO containing the validation results and submission ID
@@ -788,8 +473,7 @@ public class ValidationService {
 	private static Predicate<DataFile> havingAnyValidationFailed() {
 		return df -> (df.getCdeValidationFailed() != null && df.getCdeValidationFailed())
 				|| (df.getMetaValidationFailed() != null && df.getMetaValidationFailed())
-				|| (df.getDictValidationFailed() != null && df.getDictValidationFailed())
-				|| df.getPiiPhiFailed() != null && df.getPiiPhiFailed();
+				|| (df.getDictValidationFailed() != null && df.getDictValidationFailed());
 	}
 
     /**
@@ -816,7 +500,6 @@ public class ValidationService {
         switch (validationType){
             case "cde" -> validationResult.setCdeErrors(errors);
             case "dict" -> validationResult.setDictErrors(errors);
-            case "pii" -> validationResult.setPiiErrors(errors);
             case "meta" -> validationResult.setMetaErrors(errors);
             default -> {
                 break;

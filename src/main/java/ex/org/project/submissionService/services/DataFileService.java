@@ -524,13 +524,7 @@ public class DataFileService {
         dataFile = dataFileRepository.saveAndFlush(dataFile);
 
         //run validation on new file
-        //only run PII scan on data files
-//        CreateClassificationJobResult piiResults = null;
-//        if (oldFileCategory.getCategoryGroup().equals(Constants.CATEGORY_DATA)) {
-//            piiResults = validationService.startPIIValidationJob(dataFile, false);
-//        }
         validationService.validateFile(dataFile, oldFileCategory.getName());
-//        validationService.checkPIIValidationCompleted(piiResults, dataFile, dataFile.getSubmissionId(), false);
         return validationService.getFileValidationResults(dataFile.getId());
     }
 

@@ -8,6 +8,5 @@ import java.util.List;
 @Data
 public class ValidationResultsDTO {
     private int submissionId;
-    private Boolean piiPhiCompleted;
     private List<ValidationResult> bundles;
 }

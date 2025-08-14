@@ -76,23 +76,6 @@ public class DownloadService {
         } catch (JsonProcessingException e) {
             throw new BadDataException("Unable to parse validation results for datafile: " + df.getId() + "from database");
         }
-        if(df.getPiiPhivalidationResults()!=null){
-            MultiValuedMap<String, ValidationError> errorsMap = new ArrayListValuedHashMap<>();
-            Map errors = null;
-            try {
-                errors = new ObjectMapper().readValue(df.getPiiPhivalidationResults(), Map.class);
-            } catch (JsonProcessingException e) {
-                throw new BadDataException("Unable to parse PII validation results for datafile: " + df.getId() + "from database");
-            }
-            for (Object key : errors.keySet()){
-                //convert the validation results to Validation errors
-                List<ValidationError> validationErrors = new ObjectMapper() .convertValue(errors.get(key), new TypeReference<List<ValidationError>>() { });
-                for (ValidationError validationError: validationErrors){
-                    errorsMap.put(key.toString(),validationError);
-                }
-            }
-            validationResult.setPiiErrors(errorsMap.asMap());
-        }
         return validationResult;
     }
 
@@ -173,8 +156,6 @@ public class DownloadService {
      */
 
     public void addValidationErrorsToCSV(ValidationResult validationResult, List<String[]> allLines) throws IOException {
-
-        extractErrors(validationResult.getPiiErrors(), allLines, validationResult);
         extractErrors(validationResult.getCdeErrors(), allLines, validationResult);
         extractErrors(validationResult.getMetaErrors(), allLines, validationResult);
         extractErrors(validationResult.getDictErrors(), allLines, validationResult);

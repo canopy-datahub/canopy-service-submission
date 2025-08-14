@@ -20,7 +20,6 @@ public class ValidationResult {
     private Map<String, Collection<ValidationError>> cdeErrors;
     private Map<String, Collection<ValidationError>> dictErrors;
     private Map<String, Collection<ValidationError>> metaErrors;
-    private Map<String, Collection<ValidationError>> piiErrors;
     private List<ValidationResult> childFiles;
 
     public ValidationResult(DataFile dataFile){
