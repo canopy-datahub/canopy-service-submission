@@ -22,10 +22,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -242,7 +240,7 @@ public class StudyRegistrationService {
                     setStudyStatus(study, Constants.STATUS_IN_REVIEW);
                     // emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_DCC_METADATA);
                 } else if (isNewStudy) {
-                    setStudyStatus(study, Constants.STATUS_SAVED);
+                    setStudyStatus(study, Constants.STATUS_Draft);
                 }
             }
             case CURATOR -> {
@@ -251,7 +249,7 @@ public class StudyRegistrationService {
                     updateReleaseDate(study, userId);
                     // emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_APPROVAL);
                 } else if (isNewStudy) { //Save the update
-                    setStudyStatus(study, Constants.STATUS_SAVED);
+                    setStudyStatus(study, Constants.STATUS_Draft);
                 }
             }
             default -> throw new BadDataException("Invalid role when updating study status");
