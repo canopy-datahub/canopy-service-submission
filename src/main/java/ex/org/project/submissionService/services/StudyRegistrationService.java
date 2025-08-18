@@ -22,10 +22,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,8 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class StudyRegistrationService {
-    private final PdfService pdfService;
-    private final StorageService storageService;
     private final LkupDCCRepository dccRepository;
     private final StudyRepository studyRepository;
     private final EntityPropertyRepository entityPropertyRepository;
@@ -55,8 +51,6 @@ public class StudyRegistrationService {
     private final String CURATOR = "Curator";
     private final String DATA_SUBMITTER = "DCC";
     private final Pattern valueIndexMatcher = Pattern.compile("(\\d+)");
-    private final Pattern fileNameMatcher = Pattern.compile("^([^_]+)_phs(\\d+)_([^_]+).*.pdf");
-    private static final Integer PHS_DIGIT_LENGTH = 6;
     private static final List<String> PROPERTY_SOURCES = List.of("dbGaP/MTA", "Online Submission");
 
     /**
@@ -118,339 +112,12 @@ public class StudyRegistrationService {
         return study;
     }
 
-    /**
-     * Parses a provided file name for a dcc, phs number, and study title
-     *
-     * @param filename filename to be parsed
-     * @return map of fields parsed to their values
-     */
-    private Map<String, String> parseFileName(String filename) {
-        Map<String, String> filenameMatchesMap = new HashMap<>(3);
-        Matcher matcher = fileNameMatcher.matcher(filename);
-        if (matcher.matches()) {
-            filenameMatchesMap.put("dcc", matcher.group(1));
-            filenameMatchesMap.put("phs", matcher.group(2));
-            filenameMatchesMap.put("title", matcher.group(3));
-        } else {
-            log.error("No filename matches found for filename: {}", filename);
-            throw new PdfParsingException("Please check the format of the file name");
-        }
-        return filenameMatchesMap;
-    }
-
-    /**
-     * Creates a study property value for a phs that was parsed from a filename
-     *
-     * @param partialPhsNumber only the digits from a phs number, with or without padded '0' chars
-     * @param studyId          which study this will be saved to
-     * @return the newly created PHS number study value property
-     */
-    private StudyPropertyValue createPhsNumberPropertyValue(String partialPhsNumber, Integer studyId, Integer userId) {
-        int zeroPadding = PHS_DIGIT_LENGTH - partialPhsNumber.length();
-        StringBuilder stringBuilder = new StringBuilder(partialPhsNumber);
-        int i = 0;
-        while (i < zeroPadding) {
-            stringBuilder.insert(0, "0");
-            i++;
-        }
-        stringBuilder.insert(0, "phs");
-        String fullPhs = stringBuilder.toString();
-
-        StudyPropertyValue studyPropertyValue = new StudyPropertyValue();
-        studyPropertyValue.setStudyId(studyId);
-        studyPropertyValue.setPropertyValue(fullPhs);
-        studyPropertyValue.setCreatedBy(userId);
-        Optional<EntityProperty> ep = entityPropertyRepository.findByName("phs");
-        if (ep.isEmpty()) {
-            throw new CategoryNotFoundException("Could not find PHS entity property");
-        }
-        studyPropertyValue.setEntityProperty(ep.get());
-        return studyPropertyValue;
-    }
-
-    /**
-     * Maps all the data from the MTA form PDF to Study Property Value entities
-     *
-     * @param studyId      ID of the study that is being processed
-     * @param parsedPdfMap Object containing all the data that was parsed from the MTA form
-     * @return entities from the form to be saved to the database
-     */
-    private List<StudyPropertyValue> mapPdfFieldsToStudyPropertyValues(Integer studyId, Map<String, String> parsedPdfMap, Integer userId) {
-        Optional<LkupPropertySource> propertySourceOpt = propertySourceRepository.findByName("dbGaP/MTA");
-        if (propertySourceOpt.isEmpty()) {
-            throw new CategoryNotFoundException("Could not find Property Source for dbGaP/MTA");
-        }
-        List<EntityProperty> pdfProperties = entityPropertyRepository.findAllByPropertySourceId(propertySourceOpt.get().getId());
-        List<EntityPropertyMtaMapping> mtaMappings = mtaMappingRepository.findAll();
-        List<LkupPropertyCodelistValue> codelistValuesList = codelistValueRepository.findAll();
-
-        //map of property codelist id to a set of possible values
-        Map<Integer, Set<String>> codelistValues = getCodelistValues(codelistValuesList);
-
-        //map of property codelist id to a map of property codelist value id and value
-        Map<Integer, Map<Integer, String>> codelistValuesMap = getCodelistValuesMap(codelistValuesList);
-
-        //map of entity property ids to a list of associated mta mappings
-        Map<Integer, List<EntityPropertyMtaMapping>> idToMtaMappings = mtaMappings.stream()
-                .collect(Collectors.groupingBy(EntityPropertyMtaMapping::getEntityPropertyId));
-
-        //true = one to one, false = codelisted (saves having to traverse and filter twice)
-        Map<Boolean, List<EntityProperty>> splitEntityPropertyTypes = pdfProperties.stream()
-                .collect(Collectors.partitioningBy(property -> property.getCodeListId() == null));
-
-        //for any properties that aren't code listed
-        List<StudyPropertyValue> oneToOneProperties = splitEntityPropertyTypes.get(true)
-                .stream()
-                .map(ep -> {
-                    List<EntityPropertyMtaMapping> epMappings = idToMtaMappings.get(ep.getId());
-                    //geno_seq_platform_info is a composite study entity property but not in the mapping so is null
-                    if (epMappings == null) {
-                        return new ArrayList<StudyPropertyValue>();
-                    }
-                    return epMappings.stream()
-                            .map(mtaMap -> createNewPropertyValue(studyId, ep, mtaMap, parsedPdfMap))
-                            .toList();
-                })
-                .flatMap(Collection::stream)
-                .filter(spv -> spv.getPropertyValue() != null)
-                .toList();
-
-        List<EntityPropertyMtaMapping> commaSeparatedFields = new ArrayList<>(2);
-
-        //processes anything that has a codelist
-        //anything field marked 'comma-separated' will be added to a separate array and processed differently
-        List<StudyPropertyValue> codelistedProperties = splitEntityPropertyTypes.get(false)
-                .stream()
-                .map(ep -> {
-                    List<EntityPropertyMtaMapping> epMappings = idToMtaMappings.get(ep.getId());
-                    return epMappings.stream().map(mtaMap -> {
-                        String value = parsedPdfMap.get(mtaMap.getPdfFieldName());
-                        return createNewCodelistedPropertyValue(value, studyId, ep, mtaMap,
-                                codelistValuesMap, commaSeparatedFields
-                        );
-                    }).toList();
-                })
-                .flatMap(Collection::stream)
-                .filter(spv -> spv.getPropertyValue() != null)
-                .toList();
-
-        //processes any field marked separated and creates an individual StudyPropertyValue for each parsed value
-        List<StudyPropertyValue> commaSeparatedProperties = commaSeparatedFields.stream()
-                .map(mtaMap ->
-                        parseCommaSeparatedProperties(studyId, mtaMap, parsedPdfMap, codelistValues, pdfProperties)
-                )
-                .flatMap(Collection::stream)
-                .filter(spv -> spv.getPropertyValue() != null)
-                .toList();
-
-        List<StudyPropertyValue> allPropertyValues = Stream.of(oneToOneProperties, codelistedProperties, commaSeparatedProperties)
-                .flatMap(List::stream)
-                .toList();
-
-        allPropertyValues.forEach(spv -> spv.setCreatedBy(userId));
-
-        return allPropertyValues;
-    }
-
-    /**
-     * Maps certain study property values together based on their value index in the mta mapping table
-     *
-     * @param mtaMapDescription  column in the db where the value index is stored
-     * @param studyPropertyValue
-     */
-    private void setValueIndex(String mtaMapDescription, StudyPropertyValue studyPropertyValue) {
-        if (mtaMapDescription != null) {
-            Matcher matcher = valueIndexMatcher.matcher(mtaMapDescription);
-            if (matcher.find()) {
-                studyPropertyValue.setValueIndex(Integer.valueOf(matcher.group(0)));
-            } else {
-                log.warn("No index numbers found.");
-            }
-        }
-    }
-
-    /**
-     * Creates Study Property Value for a one-to-one entity property
-     *
-     * @param studyId
-     * @param ep           entity property that the parsed value derives from
-     * @param mtaMap       mta mapping table row containing data needed for the pdf->db relationship
-     * @param parsedPdfMap map of data parsed from the MTA form
-     * @return a new study property value entry
-     */
-    private StudyPropertyValue createNewPropertyValue(Integer studyId, EntityProperty ep, EntityPropertyMtaMapping mtaMap,
-                                                      Map<String, String> parsedPdfMap) {
-        String value = parsedPdfMap.get(mtaMap.getPdfFieldName());
-        StudyPropertyValue studyPropertyValue = new StudyPropertyValue();
-        if(value == null || value.isBlank()) {
-            return studyPropertyValue;
-        }
-        studyPropertyValue.setStudyId(studyId);
-        studyPropertyValue.setEntityProperty(ep);
-        //geno_seq properties have the value index in the mta mapping description
-        setValueIndex(mtaMap.getDescription(), studyPropertyValue);
-        String description = mtaMap.getDescription();
-        //study types has 2 mappings, types_other_specify has no codelist but isn't actually 1-to-1
-        if (description != null && description.contains("comma-separated")) {
-            value = null;
-        } else if (mtaMap.getPdfFieldName().equals("Institutional Certifications") ||
-                mtaMap.getPdfFieldName().equals("NHGRI Genomic Data Sharing  Submission Information")) {
-            value = switch (value) {
-                case "On" -> "Yes";
-                case "Off" -> "No";
-                default -> null;
-            };
-        }
-        studyPropertyValue.setPropertyValue(value);
-        return studyPropertyValue;
-    }
-
-    /**
-     * Creates Study Property Value for a codelisted entity property
-     *
-     * @param value                value that should correspond to a codelist entry
-     * @param studyId
-     * @param ep                   entity property that the parsed value derives from
-     * @param mtaMap               mta mapping table row containing data needed for the pdf->db relationship
-     * @param codelistValuesMap    map of property codelist id to a map of property codelist value id and value
-     * @param commaSeparatedFields mta mapping table entries that contain comma separated values
-     * @return a new study property value entry
-     */
-    private StudyPropertyValue createNewCodelistedPropertyValue(String value, Integer studyId, EntityProperty ep,
-                                                                EntityPropertyMtaMapping mtaMap,
-                                                                Map<Integer, Map<Integer, String>> codelistValuesMap,
-                                                                List<EntityPropertyMtaMapping> commaSeparatedFields) {
-        StudyPropertyValue studyPropertyValue = new StudyPropertyValue();
-        studyPropertyValue.setStudyId(studyId);
-        studyPropertyValue.setEntityProperty(ep);
-        value = processCodelistedValues(mtaMap, value, ep, codelistValuesMap, commaSeparatedFields);
-        studyPropertyValue.setPropertyValue(value);
-        return studyPropertyValue;
-    }
-
-    /**
-     * Parses a comma separated form value and creates a study property value entity for each
-     *
-     * @param studyId
-     * @param mtaMap         mta mapping table row containing data needed for the pdf->db relationship
-     * @param parsedPdfMap   map of data parsed from the MTA form
-     * @param codelistValues map of property codelist id to a map of property codelist value id and value
-     * @param pdfProperties  a list of all entity properties associated with the MTA form PDF
-     * @return a list of newly created study value property entities
-     */
-    private List<StudyPropertyValue> parseCommaSeparatedProperties(Integer studyId, EntityPropertyMtaMapping mtaMap,
-                                                                   Map<String, String> parsedPdfMap,
-                                                                   Map<Integer, Set<String>> codelistValues,
-                                                                   List<EntityProperty> pdfProperties) {
-        String values = parsedPdfMap.get(mtaMap.getPdfFieldName());
-        if(values.trim().isBlank()) {
-            return new ArrayList<>(0);
-        }
-        //TODO: this will parse incorrectly if a value has a comma
-        // - might want to switch this from comma separated to colon separated
-        List<String> splitValues = Arrays.stream(values.split(",")).toList();
-        List<StudyPropertyValue> studyPropertyValueList = new ArrayList<>();
-        for (String value : splitValues) {
-            String updatedValue = value.trim();
-            StudyPropertyValue studyPropertyValue = new StudyPropertyValue();
-            studyPropertyValue.setStudyId(studyId);
-            Set<String> codelistValuesSet = codelistValues.get(mtaMap.getCodelistId());
-            EntityProperty ep;
-            Optional<String> clValue = codelistValuesSet.stream().filter(updatedValue::equalsIgnoreCase).findAny();
-
-            //weird logic since there are 2 entity properties for study types
-            //one for codelisted types, one for anything else
-            //institutes_supporting_study should always find a codelisted value
-            if (clValue.isPresent()) {
-                updatedValue = clValue.get();
-                ep = pdfProperties.stream()
-                        .filter(prop -> prop.getCodeListId() != null && prop.getCodeListId().equals(mtaMap.getCodelistId()))
-                        .findAny().orElse(null);
-            } else {
-                if (mtaMap.getPdfFieldName().contains("types")) {
-                    ep = pdfProperties.stream()
-                            .filter(prop -> prop.getCodeListId() == null && prop.getName().equals("types_other_specify"))
-                            .findAny().orElse(null);
-                } else {
-                    //supporting institutes need to match
-                    log.error("Institute not on codelist: {}", updatedValue);
-                    throw new PdfParsingException("Could not find valid mapping for: " + mtaMap.getPdfFieldName());
-                }
-
-            }
-            studyPropertyValue.setEntityProperty(ep);
-            studyPropertyValue.setPropertyValue(updatedValue);
-            studyPropertyValueList.add(studyPropertyValue);
-        }
-
-        return studyPropertyValueList;
-    }
-
-    /**
-     * @param mtaMap               mta mapping table row containing data needed for the pdf->db relationship
-     * @param value                value that should correspond to a codelist entry
-     * @param ep                   entity property that the parsed value derives from
-     * @param codelistValuesMap    map of property codelist id to a map of property codelist value id and value
-     * @param commaSeparatedFields mta mapping table entries that contain comma separated values
-     * @return value to be persisted in the database
-     */
-    private String processCodelistedValues(EntityPropertyMtaMapping mtaMap, String value, EntityProperty ep,
-                                           Map<Integer, Map<Integer, String>> codelistValuesMap,
-                                           List<EntityPropertyMtaMapping> commaSeparatedFields) {
-        if (mtaMap.getCodelistValueId() != null) {
-            String codelistValue = codelistValuesMap.get(ep.getCodeListId()).get(mtaMap.getCodelistValueId());
-            if (value == null) {
-                return value;
-            }
-            value = value.trim();
-            value = switch (value) {
-                case "On" -> codelistValue;
-                case "null", "Off" -> null;
-                //this radio button maps to strings instead of yes/no or on/off
-                case "generation", "publication" -> {
-                    if (mtaMap.getPdfFieldName().equals("Data submission radio")) {
-                        if (mtaMap.getDescription().equals(value)) {
-                            yield codelistValue;
-                        }
-                        yield null;
-                    }
-                    //in case another properties value happens to match return the value
-                    //might have to change this to the codelist value or some other logic if this actually happens
-                    log.warn("Please check {} value for this study. Might contain non-codelisted value.", ep.getName());
-                    yield value;
-                }
-                default -> value;
-            };
-
-        } else {
-            String description = mtaMap.getDescription();
-            if (description != null && description.contains("comma-separated")) {
-                commaSeparatedFields.add(mtaMap);
-                value = null;
-            }
-            else if(value.equals("Off")) {
-                value = null;
-            }
-        }
-        return value;
-    }
 
     private Map<Integer, Set<String>> getCodelistValues(List<LkupPropertyCodelistValue> codelistValuesList) {
         return codelistValuesList.stream()
                 .collect(Collectors.groupingBy(
                         LkupPropertyCodelistValue::getPropertyCodelistId,
                         Collectors.mapping(LkupPropertyCodelistValue::getValue, Collectors.toSet()))
-                );
-    }
-
-    private Map<Integer, Map<Integer, String>> getCodelistValuesMap(List<LkupPropertyCodelistValue> codelistValuesList) {
-        return codelistValuesList.stream()
-                .collect(Collectors.groupingBy(
-                        LkupPropertyCodelistValue::getPropertyCodelistId,
-                        Collectors.toMap(
-                                LkupPropertyCodelistValue::getId,
-                                LkupPropertyCodelistValue::getValue
-                        ))
                 );
     }
 
@@ -573,7 +240,7 @@ public class StudyRegistrationService {
                     setStudyStatus(study, Constants.STATUS_IN_REVIEW);
                     // emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_DCC_METADATA);
                 } else if (isNewStudy) {
-                    setStudyStatus(study, Constants.STATUS_SAVED);
+                    setStudyStatus(study, Constants.STATUS_Draft);
                 }
             }
             case CURATOR -> {
@@ -582,7 +249,7 @@ public class StudyRegistrationService {
                     updateReleaseDate(study, userId);
                     // emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_APPROVAL);
                 } else if (isNewStudy) { //Save the update
-                    setStudyStatus(study, Constants.STATUS_SAVED);
+                    setStudyStatus(study, Constants.STATUS_Draft);
                 }
             }
             default -> throw new BadDataException("Invalid role when updating study status");
