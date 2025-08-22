@@ -82,7 +82,7 @@ public class SubmissionService {
         submission.setStatusId(lkupStatus.getId());
         submission.setDateSubmitted(new Timestamp(System.currentTimeMillis()));
         dataSubmissionRepository.save(submission);
-        emailRequestService.sendDataIngestEmail(submissionId, DataIngestEmailType.SUBMISSION_CONFIRMATION);
+//        emailRequestService.sendDataIngestEmail(submissionId, DataIngestEmailType.SUBMISSION_CONFIRMATION);
         return true;
     }
 
