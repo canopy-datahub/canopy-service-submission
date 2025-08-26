@@ -11,14 +11,19 @@ import java.sql.Timestamp;
 public class Study {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "study_seq")
+    @SequenceGenerator(
+        name = "study_seq",
+        sequenceName = "study_id_seq",
+        allocationSize = 1
+    )
     private Integer id;
 
     private String uuid;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "dcc_id")
-    private LkupDCC dcc;
+    @JoinColumn(name = "center_id")
+    private LkupCenter center;
 
     private String fileName;
 
