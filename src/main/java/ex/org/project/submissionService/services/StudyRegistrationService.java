@@ -5,7 +5,7 @@ import ex.org.project.submissionService.auth.UserNotFoundException;
 import ex.org.project.submissionService.emails.EmailRequestService;
 import ex.org.project.submissionService.exceptions.custom.*;
 import ex.org.project.submissionService.mappers.StudyPropertyValueMapper;
-import ex.org.project.submissionService.mappers.ViewStudyDccMapper;
+import ex.org.project.submissionService.mappers.ViewStudyCenterMapper;
 import ex.org.project.submissionService.models.*;
 import ex.org.project.submissionService.models.dtos.StudyPropertyValueDTO;
 import ex.org.project.submissionService.models.dtos.StudyRegistrationDTO;
@@ -32,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class StudyRegistrationService {
-    private final LkupDCCRepository dccRepository;
+    private final LkupCenterRepository centerRepository;
     private final StudyRepository studyRepository;
     private final EntityPropertyRepository entityPropertyRepository;
     private final StudyPropertyValueRepository studyPropertyValueRepository;
@@ -43,13 +43,13 @@ public class StudyRegistrationService {
     private final LkupStatusRepository statusRepository;
     private final UsersRepository usersRepository;
     private final ViewStudyRepository viewStudyRepository;
-    private final ViewStudyDccMapper viewStudyDccMapper;
+    private final ViewStudyCenterMapper viewStudyCenterMapper;
     private final AwsStorageService awsStorageService;
     private final EmailRequestService emailRequestService;
     private final UserFileUploadRepository uploadRepository;
 
     private final String CURATOR = "Curator";
-    private final String DATA_SUBMITTER = "DCC";
+    private final String DATA_SUBMITTER = "Center";
     private final Pattern valueIndexMatcher = Pattern.compile("(\\d+)");
     private static final List<String> PROPERTY_SOURCES = List.of("dbGaP/MTA", "Online Submission");
 
@@ -98,15 +98,15 @@ public class StudyRegistrationService {
     private Study createStudy(StudyRegistrationDTO studyRegistrationDTO, Integer userId) {
         Study study = new Study();
         study.setUuid(UUID.randomUUID().toString());
-        LkupStatus status = statusRepository.findByUsageAndName(Constants.USAGE_STUDY, Constants.STATUS_PENDING_DCC_INPUT)
-            .orElseThrow(()  -> new StatusNotFoundException(String.format("Invalid Study Status: %s", Constants.STATUS_PENDING_DCC_INPUT)));
+        LkupStatus status = statusRepository.findByUsageAndName(Constants.USAGE_STUDY, Constants.STATUS_DRAFT_STUDY)
+            .orElseThrow(()  -> new StatusNotFoundException(String.format("Invalid Study Status: %s", Constants.STATUS_DRAFT_STUDY)));
         study.setStatus(status);
         study.setCreatedAt(Timestamp.from(Instant.now()));
         study.setCreatedBy(userId);
         //todo: need to change
-        Optional<LkupDCC> dccOpt = dccRepository.findByNameContainingIgnoreCase("RADx-UP");
-        LkupDCC dcc = dccOpt.get();
-        study.setDcc(dcc);
+        Optional<LkupCenter> dccOpt = centerRepository.findByNameContainingIgnoreCase("RADx-UP");
+        LkupCenter dcc = dccOpt.get();
+        study.setCenter(dcc);
         study = studyRepository.save(study);
         log.info("New study created: {}", study);
         return study;
@@ -240,7 +240,7 @@ public class StudyRegistrationService {
                     setStudyStatus(study, Constants.STATUS_IN_REVIEW);
                     // emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_DCC_METADATA);
                 } else if (isNewStudy) {
-                    setStudyStatus(study, Constants.STATUS_Draft);
+                    setStudyStatus(study, Constants.STATUS_DRAFT_STUDY);
                 }
             }
             case CURATOR -> {
@@ -249,7 +249,7 @@ public class StudyRegistrationService {
                     updateReleaseDate(study, userId);
                     // emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_APPROVAL);
                 } else if (isNewStudy) { //Save the update
-                    setStudyStatus(study, Constants.STATUS_Draft);
+                    setStudyStatus(study, Constants.STATUS_DRAFT_STUDY);
                 }
             }
             default -> throw new BadDataException("Invalid role when updating study status");
@@ -329,10 +329,10 @@ public class StudyRegistrationService {
      * @throws UserAuthorizationException If the user is not aligned to a DCC
      */
     @Transactional(readOnly = true)
-    public List<UserStudyRegistrationDTO> getUserStudiesByDcc(Integer userId, String status) {
+    public List<UserStudyRegistrationDTO> getUserStudiesByCenter(Integer userId, String status) {
         Users users = usersRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("No user found for user ID " + userId));
-        if(users.getDcc() == null || users.getDcc().getId() == null){
+        if(users.getCenter() == null || users.getCenter().getId() == null){
             throw new UserAuthorizationException("User is not aligned to a DCC");
         }
 
@@ -340,8 +340,8 @@ public class StudyRegistrationService {
         //check if status is valid
         statusRepository.findByName(status)
                 .orElseThrow(()  -> new StatusNotFoundException(String.format("Invalid Study Status: %s", status)));
-        List<ViewStudy> viewStudies = viewStudyRepository.findDCCStudiesByStatus(users.getDcc().getId(), status);
-        return viewStudyDccMapper.toDTOs(viewStudies);
+        List<ViewStudy> viewStudies = viewStudyRepository.findCenterStudiesByStatus(users.getCenter().getId(), status);
+        return viewStudyCenterMapper.toDTOs(viewStudies);
     }
 
     /**
@@ -354,7 +354,7 @@ public class StudyRegistrationService {
         statusRepository.findByName(status)
                 .orElseThrow(()  -> new StatusNotFoundException(String.format("Invalid Study Status: %s", status)));
         List<ViewStudy> studies = viewStudyRepository.findCuratorStudiesByStatus(status);
-        return viewStudyDccMapper.toDTOs(studies);
+        return viewStudyCenterMapper.toDTOs(studies);
     }
 
     /**

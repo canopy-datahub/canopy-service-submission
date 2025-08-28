@@ -49,12 +49,12 @@ public class Users {
     private String sftpPath;
 
     @ManyToOne
-    @JoinColumn(name = "dcc_id")
-    private LkupDCC dcc;
+    @JoinColumn(name = "center_id")
+    private LkupCenter center;
 
     @Column(name = "internal_user")
     private Boolean internalUser;
-  
+
     public String getFullName() {
         return String.format("%s %s", this.getFirstName(), this.getLastName());
     }

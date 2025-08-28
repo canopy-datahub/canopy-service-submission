@@ -5,9 +5,9 @@ import lombok.Data;
 @Data
 public class StudiesDTO {
     private Integer studyId;
-    private String dcc; //Not actually dcc, should be phs + study title, frontend just expects the dcc key
-    public StudiesDTO(Integer studyId, String dcc) {
+    private String center; //Not actually center, should be phs + study title, frontend just expects the center key
+    public StudiesDTO(Integer studyId, String center) {
         this.studyId = studyId;
-        this.dcc = dcc;
+        this.center = center;
     }
 }

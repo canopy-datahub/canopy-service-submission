@@ -142,8 +142,8 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
         return new ResponseEntity<>(responseDTO, status);
     }
 
-    @ExceptionHandler(SubmitterDccException.class)
-    ResponseEntity<ExceptionResponseDTO> handleSubmitterDccException(SubmitterDccException e) {
+    @ExceptionHandler(SubmitterCenterException.class)
+    ResponseEntity<ExceptionResponseDTO> handleSubmitterDccException(SubmitterCenterException e) {
         log.warn(e.getMessage(), e);
         HttpStatus status = HttpStatus.BAD_REQUEST;
         ExceptionResponseDTO responseDTO = new ExceptionResponseDTO(

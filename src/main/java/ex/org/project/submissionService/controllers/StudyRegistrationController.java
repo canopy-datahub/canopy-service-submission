@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -39,12 +38,12 @@ public class StudyRegistrationController {
         return new ResponseEntity<>(studyRegistrationService.registerNewStudy(studyRegistrationDTO, "Curator", userId, shouldSubmit), HttpStatus.CREATED);
     }
 
-    @PostMapping("/dcc/create")
+    @PostMapping("/center/create")
     public ResponseEntity<Map<String, Integer>> uploadNewStudy(@CookieValue(value="chocolateChip", required = false) String sessionId,
                                                                @RequestBody StudyRegistrationDTO studyRegistrationDTO,
                                                                @RequestParam Boolean shouldSubmit) {
         Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
-        return new ResponseEntity<>(studyRegistrationService.registerNewStudy(studyRegistrationDTO, "DCC", userId, shouldSubmit), HttpStatus.CREATED);
+        return new ResponseEntity<>(studyRegistrationService.registerNewStudy(studyRegistrationDTO, "Center", userId, shouldSubmit), HttpStatus.CREATED);
     }
 
     @GetMapping("/getValues")
@@ -64,21 +63,21 @@ public class StudyRegistrationController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/dcc/edit")
-    public ResponseEntity<String> editStudyAsDcc(@CookieValue(value="chocolateChip", required = false) String sessionId,
-                                                 @RequestBody StudyRegistrationDTO studyRegistrationDTO,
-                                                 @RequestParam Boolean shouldSubmit){
+    @PutMapping("/center/edit")
+    public ResponseEntity<String> editStudyAsCenter(@CookieValue(value="chocolateChip", required = false) String sessionId,
+                                                    @RequestBody StudyRegistrationDTO studyRegistrationDTO,
+                                                    @RequestParam Boolean shouldSubmit){
         Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
         //TODO: track edits
-        String response = studyRegistrationService.editStudyPropertyValues(studyRegistrationDTO, "DCC", shouldSubmit, userId);
+        String response = studyRegistrationService.editStudyPropertyValues(studyRegistrationDTO, "Center", shouldSubmit, userId);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/dcc/studies")
-    public ResponseEntity<List<UserStudyRegistrationDTO>> getStudiesByDcc(@CookieValue(value="chocolateChip", required = false) String sessionId,
+    @GetMapping("/center/studies")
+    public ResponseEntity<List<UserStudyRegistrationDTO>> getStudiesByCenter(@CookieValue(value="chocolateChip", required = false) String sessionId,
                                                                           @RequestParam("status") String status) {
         Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
-        List<UserStudyRegistrationDTO> studies = studyRegistrationService.getUserStudiesByDcc(userId, status);
+        List<UserStudyRegistrationDTO> studies = studyRegistrationService.getUserStudiesByCenter(userId, status);
         return ResponseEntity.ok(studies);
     }
 

@@ -1,9 +1,6 @@
 package ex.org.project.submissionService.services;
 
-import com.amazonaws.services.macie2.AmazonMacie2;
-import com.amazonaws.services.macie2.model.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.stanford.bmir.radx.datadictionary.lib.*;
 import edu.stanford.bmir.radx.metadata.validator.lib.LiteralFieldValidators;
@@ -14,23 +11,16 @@ import ex.org.project.submissionService.models.ValidationResult;
 import ex.org.project.submissionService.models.dtos.ValidationResultsDTO;
 import ex.org.project.submissionService.repositories.*;
 import ex.org.project.submissionService.utils.BundlingUtils;
-import io.awspring.cloud.sqs.annotation.SqsListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.io.IOUtils;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import software.amazon.awssdk.services.sfn.SfnClient;
-import software.amazon.awssdk.services.sfn.model.SfnException;
-import software.amazon.awssdk.services.sfn.model.StartExecutionRequest;
-import software.amazon.awssdk.services.sfn.model.StartExecutionResponse;
-import software.amazon.awssdk.services.sqs.model.Message;
 
 
 import java.io.IOException;
@@ -49,7 +39,7 @@ public class ValidationService {
     private final StudyRepository studyRepository;
     private final DataSubmissionRepository dataSubmissionRepository;
     private final DataFileRepository dataFileRepository;
-    private final LkupDCCRepository lkupDCCRepository;
+    private final LkupCenterRepository lkupCenterRepository;
     private final AwsStorageService awsStorageService;
     private final ObjectMapper mapper = new ObjectMapper();
 

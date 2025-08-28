@@ -44,15 +44,15 @@ public class StudyRegistrationControllerTests {
 
         when(authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER)))
                 .thenReturn(userId);
-        when(studyRegistrationService.getUserStudiesByDcc(userId, status))
+        when(studyRegistrationService.getUserStudiesByCenter(userId, status))
                 .thenReturn(expectedStudies);
 
-        ResponseEntity<?> response = studyRegistrationController.getStudiesByDcc(sessionId,status);
+        ResponseEntity<?> response = studyRegistrationController.getStudiesByCenter(sessionId,status);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(expectedStudies, response.getBody());
 
-        verify(studyRegistrationService).getUserStudiesByDcc(userId, "Pending DCC Input");
+        verify(studyRegistrationService).getUserStudiesByCenter(userId, "Pending DCC Input");
     }
 
     @Test

@@ -1,6 +1,6 @@
 package ex.org.project.submissionService.service;
 
-import ex.org.project.submissionService.exceptions.custom.SubmitterDccException;
+import ex.org.project.submissionService.exceptions.custom.SubmitterCenterException;
 import ex.org.project.submissionService.mappers.ViewStudyMapper;
 import ex.org.project.submissionService.models.*;
 import ex.org.project.submissionService.models.dtos.StudiesDTO;
@@ -58,10 +58,10 @@ class SubmissionServiceTests {
         Integer userId = 1;
         Users user = new Users();
         user.setId(userId);
-        LkupDCC dcc = new LkupDCC();
+        LkupCenter dcc = new LkupCenter();
         dcc.setId(3);
         dcc.setName("test");
-        user.setDcc(dcc);
+        user.setCenter(dcc);
 
         ViewStudy vstudy = new ViewStudy();
         vstudy.setStudyName("Test Study Name");
@@ -71,14 +71,14 @@ class SubmissionServiceTests {
 
         when(usersRepository.findById(userId))
                 .thenReturn(Optional.of(user));
-        when(viewStudyRepository.findAllByDccWithoutInProgressSubmissions("test"))
+        when(viewStudyRepository.findAllByCenterWithoutInProgressSubmissions("test"))
                 .thenReturn(viewStudyList);
 
-        List<StudiesDTO> result = submissionService.getStudiesByUserDcc(userId);
+        List<StudiesDTO> result = submissionService.getStudiesByUserCenter(userId);
 
         Assertions.assertFalse(result.isEmpty());
         StudiesDTO dto = result.get(0);
-        Assertions.assertEquals("(TestPhsNumber) Test Study Name", dto.getDcc());
+        Assertions.assertEquals("(TestPhsNumber) Test Study Name", dto.getCenter());
     }
 
     @Test
@@ -90,7 +90,7 @@ class SubmissionServiceTests {
         when(usersRepository.findById(userId))
                 .thenReturn(Optional.of(user));
 
-        assertThrows(SubmitterDccException.class, () -> submissionService.getStudiesByUserDcc(userId));
+        assertThrows(SubmitterCenterException.class, () -> submissionService.getStudiesByUserCenter(userId));
     }
 
     @Test

@@ -11,9 +11,9 @@ import java.util.Optional;
 @Repository
 public interface StudyRepository extends JpaRepository<Study,Integer> {
 
-    List<Study>findByDcc_Name(String dccName);
+    List<Study>findByCenter_Name(String centerName);
 
-    List<Study>findByDcc_Id(Integer dccId);
+    List<Study>findByCenter_Id(Integer centerId);
 
     Study findStudyById(Integer id);
 

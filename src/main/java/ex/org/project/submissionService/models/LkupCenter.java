@@ -4,9 +4,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "lkup_dcc")
+@Table(name = "lkup_center")
 @Data
-public class LkupDCC {
+public class LkupCenter {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -8,10 +8,9 @@ import java.util.NoSuchElementException;
 import ex.org.project.submissionService.auth.UserNotFoundException;
 import ex.org.project.submissionService.emails.EmailRequestService;
 import ex.org.project.submissionService.exceptions.custom.StatusNotFoundException;
-import ex.org.project.submissionService.exceptions.custom.SubmitterDccException;
+import ex.org.project.submissionService.exceptions.custom.SubmitterCenterException;
 import ex.org.project.submissionService.mappers.ViewStudyMapper;
 import ex.org.project.submissionService.models.*;
-import ex.org.project.submissionService.emails.DataIngestEmailType;
 import ex.org.project.submissionService.repositories.*;
 import org.springframework.stereotype.Service;
 
@@ -36,13 +35,13 @@ public class SubmissionService {
     private final LkupSubmissionStepRepository lkupSubmissionStepRepository;
     private final EmailRequestService emailRequestService;
 
-    public List<StudiesDTO> getStudiesByUserDcc(Integer userId) throws StudyPropertyValuesRetrievalException{
+    public List<StudiesDTO> getStudiesByUserCenter(Integer userId) throws StudyPropertyValuesRetrievalException{
         Users user = usersRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(String.format("User ID %d not found", userId)));
-        if(user.getDcc() == null || user.getDcc().getName() == null) {
-            throw new SubmitterDccException("Please contact support for DCC alignment");
+        if(user.getCenter() == null || user.getCenter().getName() == null) {
+            throw new SubmitterCenterException("Please contact support for center alignment");
         }
-        List<ViewStudy> studies = viewStudyRepository.findAllByDccWithoutInProgressSubmissions(user.getDcc().getName());
+        List<ViewStudy> studies = viewStudyRepository.findAllByCenterWithoutInProgressSubmissions(user.getCenter().getName());
         return viewStudyMapper.toDTOs(studies);
     }
     /**

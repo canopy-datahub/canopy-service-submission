@@ -47,8 +47,8 @@ public class EmailRequestService {
 
         switch(requestType) {
             case NEW_STUDY_CREATION:
-                to.addAll(emailAddressService.getExternalDccEmailAddresses(study.getDCC()));
-                cc.addAll(emailAddressService.getInternalDccEmailAddresses(study.getDCC()));
+                to.addAll(emailAddressService.getExternalCenterEmailAddresses(study.getCenter()));
+                cc.addAll(emailAddressService.getInternalCenterEmailAddresses(study.getCenter()));
                 cc.addAll(emailAddressService.getCuratorEmailAddresses());
                 cc.addAll(emailAddressService.getAdditionalStakeholderEmailsStudyReg());
                 break;
@@ -57,8 +57,8 @@ public class EmailRequestService {
                 break;
             case NEW_STUDY_APPROVAL:
                 props.put("studyLink", String.format("%s/study/%d", hostname, study.getStudyId()));
-                to.addAll(emailAddressService.getExternalDccEmailAddresses(study.getDCC()));
-                cc.addAll(emailAddressService.getInternalDccEmailAddresses(study.getDCC()));
+                to.addAll(emailAddressService.getExternalCenterEmailAddresses(study.getCenter()));
+                cc.addAll(emailAddressService.getInternalCenterEmailAddresses(study.getCenter()));
                 cc.addAll(emailAddressService.getCuratorEmailAddresses());
                 cc.addAll(emailAddressService.getAdditionalStakeholderEmailsStudyReg());
                 break;

@@ -344,7 +344,7 @@ public class FileApprovalServiceTests {
         study.setPhs("phs123456");
         study.setStudyName("Study Name");
         study.setStudyId(10);
-        study.setDCC("BAH");
+        study.setCenter("BAH");
 
         when(dataSubmissionRepository.findById(submissionId))
                 .thenReturn(Optional.of(submission));
@@ -358,8 +358,8 @@ public class FileApprovalServiceTests {
         DetailsDTO response = fileApprovalService.getSubmissionBundleInfo(submissionId);
 
         assertEquals(100, response.getSubmissionId());
-        assertEquals("BAH", response.getDcc());
-        assertEquals("Test McTestington", response.getDccRep());
+        assertEquals("BAH", response.getCenter());
+        assertEquals("Test McTestington", response.getCenterRep());
         assertEquals("Study Name", response.getStudyName());
         assertEquals("phs123456", response.getPhs());
         assertEquals(1, response.getBundles().size());
@@ -384,7 +384,7 @@ public class FileApprovalServiceTests {
         study.setPhs("phs123456");
         study.setStudyName("Study Name");
         study.setStudyId(10);
-        study.setDCC("BAH");
+        study.setCenter("BAH");
 
         when(dataSubmissionRepository.findById(submissionId))
                 .thenReturn(Optional.of(submission));
@@ -398,8 +398,8 @@ public class FileApprovalServiceTests {
         DetailsDTO response = fileApprovalService.getSubmissionBundleInfo(submissionId);
 
         assertEquals(100, response.getSubmissionId());
-        assertEquals("BAH", response.getDcc());
-        assertEquals("Test McTestington", response.getDccRep());
+        assertEquals("BAH", response.getCenter());
+        assertEquals("Test McTestington", response.getCenterRep());
         assertEquals("Study Name", response.getStudyName());
         assertEquals("phs123456", response.getPhs());
         assertEquals(2, response.getBundles().size());
@@ -425,7 +425,7 @@ public class FileApprovalServiceTests {
         study.setPhs("phs123456");
         study.setStudyName("Study Name");
         study.setStudyId(10);
-        study.setDCC("BAH");
+        study.setCenter("BAH");
 
         when(dataSubmissionRepository.findById(submissionId))
                 .thenReturn(Optional.of(submission));
@@ -439,8 +439,8 @@ public class FileApprovalServiceTests {
         DetailsDTO response = fileApprovalService.getSubmissionBundleInfo(submissionId);
 
         assertEquals(100, response.getSubmissionId());
-        assertEquals("BAH", response.getDcc());
-        assertEquals("Test McTestington", response.getDccRep());
+        assertEquals("BAH", response.getCenter());
+        assertEquals("Test McTestington", response.getCenterRep());
         assertEquals("Study Name", response.getStudyName());
         assertEquals("phs123456", response.getPhs());
         assertEquals(2, response.getBundles().size());

@@ -1,6 +1,6 @@
 package ex.org.project.submissionService.repositories;
 
-import ex.org.project.submissionService.models.LkupDCC;
+import ex.org.project.submissionService.models.LkupCenter;
 import ex.org.project.submissionService.models.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,9 +26,9 @@ public interface UsersRepository extends JpaRepository<Users, Integer> {
 
 	Optional<Users> findUsersBySftpPathEqualsIgnoreCase(String sftpPath);
 
-	List<Users> findAllByRoles_NameAndDcc(String role, LkupDCC dcc);
+	List<Users> findAllByRoles_NameAndCenter(String role, LkupCenter center);
 
-	List<Users> findAllByRoles_NameAndDccAndInternalUserIsTrue(String role, LkupDCC dcc);
+	List<Users> findAllByRoles_NameAndCenterAndInternalUserIsTrue(String role, LkupCenter center);
 
-	List<Users> findAllByRoles_NameAndDccAndInternalUserIsFalse(String role, LkupDCC dcc);
+	List<Users> findAllByRoles_NameAndCenterAndInternalUserIsFalse(String role, LkupCenter center);
 }

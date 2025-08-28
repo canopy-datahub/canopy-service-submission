@@ -1,9 +1,9 @@
 package ex.org.project.submissionService.emails;
 
 import ex.org.project.submissionService.auth.AccessRole;
-import ex.org.project.submissionService.models.LkupDCC;
+import ex.org.project.submissionService.models.LkupCenter;
 import ex.org.project.submissionService.models.Users;
-import ex.org.project.submissionService.repositories.LkupDCCRepository;
+import ex.org.project.submissionService.repositories.LkupCenterRepository;
 import ex.org.project.submissionService.repositories.UsersRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,49 +20,49 @@ import java.util.*;
 public class EmailAddressService {
 
     private final UsersRepository usersRepository;
-    private final LkupDCCRepository dccRepository;
+    private final LkupCenterRepository centerRepository;
     private final String supportEmailAddress;
     private final List<String> stakeholderEmailsStudyReg;
 
     public EmailAddressService(UsersRepository usersRepository,
-                               LkupDCCRepository dccRepository,
+                               LkupCenterRepository centerRepository,
                                @Value("${supportEmail}") String supportEmailAddress,
                                @Value("${stakeholder-emails-study-reg}") String[] stakeholderEmailsStudyReg){
         this.usersRepository = usersRepository;
-        this.dccRepository = dccRepository;
+        this.centerRepository = centerRepository;
         this.supportEmailAddress = supportEmailAddress;
         this.stakeholderEmailsStudyReg = Arrays.stream(stakeholderEmailsStudyReg).toList();
     }
 
     /**
-     * @param dccName the name of the DCC to find the submitter email addresses for
+     * @param centerName the name of the center to find the submitter email addresses for
      * @return list of email addresses for a DCC
      */
     @Transactional(readOnly = true)
-    public List<String> getExternalDccEmailAddresses(String dccName) {
-        Optional<LkupDCC> dccOpt = dccRepository.findByNameEqualsIgnoreCase(dccName);
-        if(dccOpt.isEmpty()) {
-            log.error("Could not find DCC with name {}", dccName);
+    public List<String> getExternalCenterEmailAddresses(String centerName) {
+        Optional<LkupCenter> centerOpt = centerRepository.findByNameEqualsIgnoreCase(centerName);
+        if(centerOpt.isEmpty()) {
+            log.error("Could not find DCC with name {}", centerName);
             return new ArrayList<>(0);
         }
-        List<Users> submitters = usersRepository.findAllByRoles_NameAndDccAndInternalUserIsFalse(AccessRole.DATA_SUBMITTER.label, dccOpt.get());
+        List<Users> submitters = usersRepository.findAllByRoles_NameAndCenterAndInternalUserIsFalse(AccessRole.DATA_SUBMITTER.label, centerOpt.get());
         return submitters.stream()
                 .map(Users::getEmail)
                 .toList();
     }
 
     /**
-     * @param dccName the name of the DCC to find the submitter email addresses for
-     * @return list of email addresses for a DCC
+     * @param centerName the name of the center to find the submitter email addresses for
+     * @return list of email addresses for a center
      */
     @Transactional(readOnly = true)
-    public List<String> getInternalDccEmailAddresses(String dccName) {
-        Optional<LkupDCC> dccOpt = dccRepository.findByNameEqualsIgnoreCase(dccName);
-        if(dccOpt.isEmpty()) {
-            log.error("Could not find DCC with name {}", dccName);
+    public List<String> getInternalCenterEmailAddresses(String centerName) {
+        Optional<LkupCenter> centerOpt = centerRepository.findByNameEqualsIgnoreCase(centerName);
+        if(centerOpt.isEmpty()) {
+            log.error("Could not find center with name {}", centerName);
             return new ArrayList<>(0);
         }
-        List<Users> submitters = usersRepository.findAllByRoles_NameAndDccAndInternalUserIsTrue(AccessRole.DATA_SUBMITTER.label, dccOpt.get());
+        List<Users> submitters = usersRepository.findAllByRoles_NameAndCenterAndInternalUserIsTrue(AccessRole.DATA_SUBMITTER.label, centerOpt.get());
         return submitters.stream()
                 .map(Users::getEmail)
                 .toList();

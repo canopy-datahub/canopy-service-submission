@@ -11,7 +11,7 @@ public class DetailsDTO {
     private Integer submissionId;
     private String studyName;
     private String phs;
-    private String dccRep;
-    private String dcc;
+    private String centerRep;
+    private String center;
     private List<BundlesDTO> bundles;
 }

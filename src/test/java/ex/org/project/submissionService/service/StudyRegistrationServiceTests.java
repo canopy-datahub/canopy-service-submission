@@ -1525,10 +1525,10 @@
 //                 .thenReturn(Optional.of(pendingDCCStatus));
 //         when(usersRepository.findById(1))
 //                 .thenReturn(Optional.of(users));
-//         when(viewStudyRepository.findDCCStudiesByStatus(1, "Pending DCC Input"))
+//         when(viewStudyRepository.findCenterStudiesByStatus(1, "Pending DCC Input"))
 //                 .thenReturn(studies);
 
-//         List<UserStudyRegistrationDTO> resultDTOList = studyRegistrationService.getUserStudiesByDcc(1, "Pending DCC Input");
+//         List<UserStudyRegistrationDTO> resultDTOList = studyRegistrationService.getUserStudiesByCenter(1, "Pending DCC Input");
 
 //         // Verify the results
 //         Assertions.assertEquals(1, resultDTOList.get(0).getStudyId());
@@ -1539,7 +1539,7 @@
 //         when(usersRepository.findById(anyInt()))
 //                 .thenReturn(Optional.of(new Users()));
 //         Assertions.assertThrows(UserAuthorizationException.class, () -> {
-//             studyRegistrationService.getUserStudiesByDcc(1, "");
+//             studyRegistrationService.getUserStudiesByCenter(1, "");
 //         });
 //     }
 

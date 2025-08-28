@@ -34,9 +34,9 @@ public class SubmissionController {
 	private final UserAuthService authService;
 
 	@GetMapping("/getStudies")
-	public ResponseEntity<List<StudiesDTO>> getStudiesByUserDcc(@CookieValue(value="chocolateChip", required = false) String sessionId) {
+	public ResponseEntity<List<StudiesDTO>> getStudiesByUserCenter(@CookieValue(value="chocolateChip", required = false) String sessionId) {
 		Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
-		return ResponseEntity.ok(studyService.getStudiesByUserDcc(userId));
+		return ResponseEntity.ok(studyService.getStudiesByUserCenter(userId));
 	}
 
 	@PostMapping("/create-submission")

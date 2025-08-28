@@ -30,7 +30,7 @@ public interface Constants {
     String STATUS_PENDING_DCC_INPUT = "Pending DCC Input";
     String STATUS_IN_REVIEW = "In Review";
     String STATUS_APPROVED_STUDY = "Approved";
-    String STATUS_Draft = "Draft";
+    String STATUS_DRAFT_STUDY = "Draft";
     String USAGE_GENERAL = "general";
     String USAGE_SUPPORT_REQUEST = "support_request";
     String USAGE_FILE = "file";

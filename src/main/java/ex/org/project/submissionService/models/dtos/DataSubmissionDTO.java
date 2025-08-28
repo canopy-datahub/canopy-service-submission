@@ -10,9 +10,9 @@ public class DataSubmissionDTO {
 	private Integer studyId;
 	private String studyName;
 	private String phs;
-	private String DCC;
+	private String center;
 	private Timestamp submissionDate;
 	private Timestamp createdAt;
-	private String DCCRepresentative;
+	private String centerRepresentative;
 	private String submissionStatus;
 }

@@ -9,7 +9,7 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface ViewStudyMapper {
-    @Mapping(target = "dcc", expression = "java(study.getPhsTitle())")
+    @Mapping(target = "center", expression = "java(study.getPhsTitle())")
     StudiesDTO toDTO(ViewStudy study);
 
     List<StudiesDTO> toDTOs(List<ViewStudy> studies);

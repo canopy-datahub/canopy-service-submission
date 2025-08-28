@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
-import java.util.Date;
 
 @Entity
 @Data
@@ -33,7 +32,7 @@ public class ViewStudy {
     @Column(name="has_data_files")
     private Boolean  hasDataFiles;
 
-    private String DCC;
+    private String center;
 
     public String getPhsTitle(){
         return String.format("(%s) %s", phs, studyName);

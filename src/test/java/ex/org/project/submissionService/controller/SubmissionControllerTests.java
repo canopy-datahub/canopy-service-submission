@@ -58,11 +58,11 @@ public class SubmissionControllerTests {
 		// return the studiesList.
 		when(authService.checkAuth(eq(sessionId), eq(List.of(AccessRole.DATA_SUBMITTER))))
 				.thenReturn(userId);
-		when(studyService.getStudiesByUserDcc(eq(userId)))
+		when(studyService.getStudiesByUserCenter(eq(userId)))
 				.thenReturn(studiesList);
 
 		// Call the getStudiesByDccName() method of the controller and store the result.
-		ResponseEntity<List<StudiesDTO>> response = submissionController.getStudiesByUserDcc(sessionId);
+		ResponseEntity<List<StudiesDTO>> response = submissionController.getStudiesByUserCenter(sessionId);
 
 		assertNotNull(response);
 		assertEquals(studiesList, response.getBody());

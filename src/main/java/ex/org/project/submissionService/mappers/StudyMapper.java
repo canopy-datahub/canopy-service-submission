@@ -9,9 +9,9 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface StudyMapper {
-	
-	@Mapping(source = "propertyValue", target = "dcc")
+
+	@Mapping(source = "propertyValue", target = "center")
 	StudiesDTO toDTO(StudyPropertyValue study);
-    
+
     List<StudiesDTO> toDTOs(List<StudyPropertyValue> studies);
 }

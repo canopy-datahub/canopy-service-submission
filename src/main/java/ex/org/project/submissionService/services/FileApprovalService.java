@@ -24,7 +24,6 @@ import ex.org.project.submissionService.exceptions.custom.FileDeletionException;
 
 import ex.org.project.submissionService.models.dtos.DataSubmissionDTO;
 import ex.org.project.submissionService.models.dtos.SubmissionApprovalDTO;
-import ex.org.project.submissionService.emails.DataIngestEmailType;
 import ex.org.project.submissionService.mappers.SubmissionByCuratorMapper;
 import ex.org.project.submissionService.repositories.*;
 
@@ -90,7 +89,7 @@ public class FileApprovalService {
 			ViewStudy viewStudy = studyIdToViewMap.get(studyId);
 			DataSubmissionDTO dataSubmissionDTO = dataSubmissionMapper.toDTO(viewStudy,dataSubmission);
 			String submitterName = userIdToNameMap.get(dataSubmission.getSubmitterUserId());
-			dataSubmissionDTO.setDCCRepresentative(submitterName);
+			dataSubmissionDTO.setCenterRepresentative(submitterName);
 			submittedSubmissionsDTOs.add(dataSubmissionDTO);
         }
 
@@ -132,8 +131,8 @@ public class FileApprovalService {
 
 		// Map studies to DetailsDTO and set DCC representative
 		DetailsDTO detailsDto = submissionByCuratorMapper.toDTOs(study);
-		detailsDto.setDccRep(user.getFullName());
-        detailsDto.setDcc(study.getDCC());
+		detailsDto.setCenterRep(user.getFullName());
+        detailsDto.setCenter(study.getCenter());
 
 		// Set bundles, ID, and add to the list of DetailsDTO objects
 		detailsDto.setBundles(bundlesDtos);
