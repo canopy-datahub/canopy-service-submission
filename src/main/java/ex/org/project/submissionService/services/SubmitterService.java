@@ -49,37 +49,35 @@ public class SubmitterService {
         DataSubmission dataSubmission = dataSubmissionRepository.findById(submissionId)
                 .orElseThrow(() -> new SubmissionIdInvalidException("Could not find submission ID: " + submissionId));
         List<DataFile> datafileList = dataFileRepository.findBySubmissionId(dataSubmission.getId());
-        if (datafileList.isEmpty()) {
-            throw new DataFileNotFoundException("No file found with ID " + dataSubmission.getId());
-        }
-        datafileList.stream().filter(df -> df.getS3File() == null).findAny().ifPresent(df -> {
-            throw new DataFileNotFoundException("No S3 file found for ID " + df.getId());
-        });
-        for (DataFile dataFile : datafileList) {
-            S3File s3File = dataFile.getS3File();
-            s3File.setS3FileKeyAndBucketFromPath();
-            //check if any data files have file to be deleted as a foreign key reference
-            //if so, get them and set reference to null
-            List<DataFile> foreignKeyDictFiles = dataFileRepository.findDataFilesByDictionaryFileId(dataFile.getId());
-            if (!foreignKeyDictFiles.isEmpty()) {
-                foreignKeyDictFiles.forEach(df -> df.setDictionaryFileId(null));
-                dataFileRepository.saveAll(foreignKeyDictFiles);
-            }
+        if (!datafileList.isEmpty()) {
+            datafileList.stream().filter(df -> df.getS3File() == null).findAny().ifPresent(df -> {
+                throw new DataFileNotFoundException("No S3 file found for ID " + df.getId());
+            });
+            for (DataFile dataFile : datafileList) {
+                S3File s3File = dataFile.getS3File();
+                s3File.setS3FileKeyAndBucketFromPath();
+                //check if any data files have file to be deleted as a foreign key reference
+                //if so, get them and set reference to null
+                List<DataFile> foreignKeyDictFiles = dataFileRepository.findDataFilesByDictionaryFileId(dataFile.getId());
+                if (!foreignKeyDictFiles.isEmpty()) {
+                    foreignKeyDictFiles.forEach(df -> df.setDictionaryFileId(null));
+                    dataFileRepository.saveAll(foreignKeyDictFiles);
+                }
 
-            List<DataFile> foreignKeyMetaFiles = dataFileRepository.findDataFilesByMetadataFileId(dataFile.getId());
-            if (!foreignKeyMetaFiles.isEmpty()) {
-                foreignKeyMetaFiles.forEach(df -> df.setMetadataFileId(null));
-                dataFileRepository.saveAll(foreignKeyMetaFiles);
-            }
+                List<DataFile> foreignKeyMetaFiles = dataFileRepository.findDataFilesByMetadataFileId(dataFile.getId());
+                if (!foreignKeyMetaFiles.isEmpty()) {
+                    foreignKeyMetaFiles.forEach(df -> df.setMetadataFileId(null));
+                    dataFileRepository.saveAll(foreignKeyMetaFiles);
+                }
 
-            try {
-                //delete object from data_file and s3_file tables, and the s3 bucket
-                dataFileRepository.deleteById(dataFile.getId());
-                dataFileService.deleteS3FileAndEntity(s3File);
-            } catch (DataAccessException e) {
-                throw new FileDeletionException("Error deleting file from database");
+                try {
+                    //delete object from data_file and s3_file tables, and the s3 bucket
+                    dataFileRepository.deleteById(dataFile.getId());
+                    dataFileService.deleteS3FileAndEntity(s3File);
+                } catch (DataAccessException e) {
+                    throw new FileDeletionException("Error deleting file from database");
+                }
             }
-
         }
         dataSubmissionRepository.deleteById(submissionId);
     }
