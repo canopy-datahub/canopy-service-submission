@@ -142,7 +142,7 @@ public class SFTPService {
         Map<String, String> props = new HashMap<>();
         String phsNumbers = String.join(";", sftpUploadInfo.getStudies());
         props.put("phsNumbers", phsNumbers);
-        // emailRequestService.sendSftpEmail(SftpEmailType.SFTP_PROCESSED, sftpUploadInfo.getUser(), props);
+         emailRequestService.sendSftpEmail(SftpEmailType.SFTP_PROCESSED, sftpUploadInfo.getUser(), props);
         //trigger default bundling for each submission
         try {
             for (Integer submissionId : sftpSubmissions) {

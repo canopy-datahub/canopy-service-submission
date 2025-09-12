@@ -3,6 +3,7 @@ package ex.org.project.submissionService.services;
 import ex.org.project.submissionService.auth.UserAuthorizationException;
 import ex.org.project.submissionService.auth.UserNotFoundException;
 import ex.org.project.submissionService.emails.EmailRequestService;
+import ex.org.project.submissionService.emails.StudyRegEmailType;
 import ex.org.project.submissionService.exceptions.custom.*;
 import ex.org.project.submissionService.mappers.StudyPropertyValueMapper;
 import ex.org.project.submissionService.mappers.ViewStudyCenterMapper;
@@ -69,7 +70,7 @@ public class StudyRegistrationService {
 
         updateStudyPropertyValues(studyRegistrationDTOWithId, role, userId, shouldSubmit, true);
 
-//        emailRequestService.sendStudyRegEmail(studyId, StudyRegEmailType.NEW_STUDY_CREATION);
+        emailRequestService.sendStudyRegEmail(studyId, StudyRegEmailType.NEW_STUDY_CREATION);
         return Map.of("studyId", studyId);
     }
 
@@ -238,7 +239,7 @@ public class StudyRegistrationService {
             case DATA_SUBMITTER -> {
                 if (shouldSubmit) {
                     setStudyStatus(study, Constants.STATUS_IN_REVIEW);
-                    // emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_DCC_METADATA);
+                     emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_DCC_METADATA);
                 } else if (isNewStudy) {
                     setStudyStatus(study, Constants.STATUS_DRAFT_STUDY);
                 }
@@ -247,7 +248,7 @@ public class StudyRegistrationService {
                 if(shouldSubmit){
                     setStudyStatus(study, Constants.STATUS_APPROVED_STUDY);
                     updateReleaseDate(study, userId);
-                    // emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_APPROVAL);
+                     emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_APPROVAL);
                 } else if (isNewStudy) { //Save the update
                     setStudyStatus(study, Constants.STATUS_DRAFT_STUDY);
                 }

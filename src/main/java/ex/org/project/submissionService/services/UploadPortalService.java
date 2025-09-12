@@ -52,7 +52,7 @@ public class UploadPortalService {
         S3File uploadedFile = storageService.uploadPortalFile(file, userId);
         UserFileUpload userFileUpload = new UserFileUpload(uploadedFile, study.getStudyId());
         uploadRepository.save(userFileUpload);
-//        emailRequestService.sendUploadPortalEmail(uploadedFile.getFileName(), study.getPhsTitle(), user);
+        emailRequestService.sendUploadPortalEmail(uploadedFile.getFileName(), study.getPhsTitle(), user);
     }
 
     public List<StudiesDTO> getApprovedStudies() {

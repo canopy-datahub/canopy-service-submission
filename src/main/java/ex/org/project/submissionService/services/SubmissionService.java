@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import ex.org.project.submissionService.auth.UserNotFoundException;
+import ex.org.project.submissionService.emails.DataIngestEmailType;
 import ex.org.project.submissionService.emails.EmailRequestService;
 import ex.org.project.submissionService.exceptions.custom.StatusNotFoundException;
 import ex.org.project.submissionService.exceptions.custom.SubmitterCenterException;
@@ -81,7 +82,7 @@ public class SubmissionService {
         submission.setStatusId(lkupStatus.getId());
         submission.setDateSubmitted(new Timestamp(System.currentTimeMillis()));
         dataSubmissionRepository.save(submission);
-//        emailRequestService.sendDataIngestEmail(submissionId, DataIngestEmailType.SUBMISSION_CONFIRMATION);
+        emailRequestService.sendDataIngestEmail(submissionId, DataIngestEmailType.SUBMISSION_CONFIRMATION);
         return true;
     }
 

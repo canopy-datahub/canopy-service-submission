@@ -11,6 +11,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import com.opencsv.CSVWriter;
+import ex.org.project.submissionService.emails.DataIngestEmailType;
 import ex.org.project.submissionService.exceptions.custom.*;
 import ex.org.project.submissionService.models.*;
 import ex.org.project.submissionService.models.dtos.*;
@@ -283,7 +284,7 @@ public class FileApprovalService {
 		Map<String, String> props = Map.of("rejectedFiles", rejectedFileNames,
                                            "rejectionReason", rejectionReason,
 										   "approvedFiles", approvedFileNames);
-//        emailRequestService.sendDataIngestEmail(submissionId, DataIngestEmailType.SUBMISSION_PROCESSED, props);
+        emailRequestService.sendDataIngestEmail(submissionId, DataIngestEmailType.SUBMISSION_PROCESSED, props);
 		//To populate variable counts of the approved original data file
 		approvedFiles
 				.forEach(
