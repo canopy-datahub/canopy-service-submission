@@ -52,9 +52,6 @@ public class EmailRequestService {
                 cc.addAll(emailAddressService.getCuratorEmailAddresses());
                 cc.addAll(emailAddressService.getAdditionalStakeholderEmailsStudyReg());
                 break;
-            case NEW_STUDY_DCC_METADATA:
-                to.addAll(emailAddressService.getCuratorEmailAddresses());
-                break;
             case NEW_STUDY_APPROVAL:
                 props.put("studyLink", String.format("%s/study/%d", hostname, study.getStudyId()));
                 to.addAll(emailAddressService.getExternalCenterEmailAddresses(study.getCenter()));
