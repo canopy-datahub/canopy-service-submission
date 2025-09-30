@@ -40,11 +40,13 @@ management:
     health:
       enabled: true
       show-details: never
+    shutdown:
+      enabled: true
   endpoints:
     enabled-by-default: false
     web:
       exposure:
-        include: health
+        include: health,shutdown
 
 logging:
   level:
@@ -95,6 +97,10 @@ spring:
       on-profile: dev
   jpa:
     show-sql: true
+  security:
+    user:
+      name: ${DATAHUB_SPRING_MANAGEMENT_USER}
+      password: ${DATAHUB_SPRING_MANAGEMENT_PASSWORD}
 
 management:
   endpoint:
@@ -111,7 +117,7 @@ logging:
         DispatcherServlet: warn
         mvc.method.annotation:
           HttpEntityMethodProcessor: warn
-          
+
   pattern:
     console: "[SUBMISSION] [TEST] %d{yyyy-MM-dd HH:mm:ss.SSS} [%5p] --- [%15.15t] %-40.40logger{1.} :: %m%n%wEx"
 
