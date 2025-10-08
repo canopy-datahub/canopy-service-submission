@@ -20,6 +20,7 @@ public interface SubmitterInfoMapper {
 	@Mapping(source = "dataSubmission.createdAt", target = "createdDate")
 	@Mapping(source = "dataSubmission.dateSubmitted", target = "submittedDate")
 	@Mapping(source = "dataSubmission.modifiedAt", target = "modifiedDate")
+	@Mapping(source = "dataSubmission.dateApproved", target = "approvedDate")
 	SubmissionInfoDTO toDTO(DataSubmission dataSubmission);
 
 	List<SubmissionInfoDTO> toDTOList(List<DataSubmission> dataSubmissions);

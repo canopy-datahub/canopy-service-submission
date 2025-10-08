@@ -12,6 +12,7 @@ import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.unit.DataSize;
+import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.sfn.SfnClient;
 
 @Configuration
@@ -45,4 +46,7 @@ public class AwsClientConfig {
     public SfnClient sfnClient(){
         return SfnClient.create();
     }
+
+    @Bean
+    public LambdaClient lambdaClient(){ return LambdaClient.create(); }
 }

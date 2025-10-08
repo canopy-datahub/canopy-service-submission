@@ -55,6 +55,7 @@ public class StudyRegistrationServiceTests {
     @InjectMocks StudyRegistrationService studyRegistrationService;
     @Mock UserFileUploadRepository UserFileUploadRepository;
 
+
     @Captor ArgumentCaptor<List<StudyPropertyValue>> spvCaptor;
 
     private static final String PDF_FILE_NAME = "TECH_phs9999_Study Title Goes Here.pdf";
@@ -955,13 +956,14 @@ public class StudyRegistrationServiceTests {
                 .thenReturn(Optional.of(new ViewStudy()));
 
         String response = studyRegistrationService.editStudyPropertyValues(dto, "Curator", true, userId);
-
         assertEquals("Successfully updated property values", response);
         verify(studyRepository, times(1)).findById(8);
+        verify(studyRepository, times(1)).saveAndFlush(any(Study.class));
         verify(propertySourceRepository, times(1)).findAllByNameIn(anyList());
         verify(entityPropertyRepository, times(1)).findAllByPropertySourceIdIn(anyList());
         verify(studyPropertyValueRepository, times(2)).findById(anyInt());
-        verify(studyPropertyValueRepository, times(4)).save(any(StudyPropertyValue.class));
+        verify(studyPropertyValueRepository, times(3)).save(any(StudyPropertyValue.class));
+        verify(studyPropertyValueRepository, times(1)).saveAndFlush(any(StudyPropertyValue.class));
         assertEquals(status, study.getStatus());
     }
 

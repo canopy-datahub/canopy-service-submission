@@ -3,8 +3,10 @@ package ex.org.project.submissionService.controller;
 import ex.org.project.submissionService.auth.AccessRole;
 import ex.org.project.submissionService.auth.UserAuthService;
 import ex.org.project.submissionService.controllers.StudyRegistrationController;
+import ex.org.project.submissionService.models.dtos.StudyRegistrationDTO;
 import ex.org.project.submissionService.models.dtos.UserStudyRegistrationDTO;
 import ex.org.project.submissionService.services.StudyRegistrationService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -71,4 +73,16 @@ public class StudyRegistrationControllerTests {
         assertEquals(expectedStudies, response.getBody());
     }
 
+    @Test
+    void testOpenSearchRefreshStudyApproval() {
+        StudyRegistrationDTO dto = new StudyRegistrationDTO(any(),any());
+
+        when(studyRegistrationService.editStudyPropertyValues(dto, eq("Curator"), true, anyInt()))
+                .thenReturn("Successfully updated property values");
+
+        ResponseEntity<?> response = studyRegistrationController.editStudyAsCurator(any(), any(),true);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(studyRegistrationService, times(1)).triggerOpenSearchRefresh();
+
+    }
 }

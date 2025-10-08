@@ -12,9 +12,12 @@ import ex.org.project.submissionService.models.dtos.StudyRegistrationDTO;
 import ex.org.project.submissionService.models.dtos.UserStudyRegistrationDTO;
 import ex.org.project.submissionService.emails.StudyRegEmailType;
 import ex.org.project.submissionService.repositories.*;
+
+import ex.org.project.submissionService.utils.LambdaUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -30,6 +33,7 @@ import java.util.stream.Stream;
 
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.lambda.LambdaClient;
 
 
 @Slf4j
@@ -53,12 +57,15 @@ public class StudyRegistrationService {
     private final AwsStorageService awsStorageService;
     private final EmailRequestService emailRequestService;
     private final UserFileUploadRepository uploadRepository;
+    private final LambdaClient awsLambdaClient;
 
     private final Pattern valueIndexMatcher = Pattern.compile("(\\d+)");
     private final Pattern fileNameMatcher = Pattern.compile("^([^_]+)_phs(\\d+)_([^_]+).*.pdf");
     private static final Integer PHS_DIGIT_LENGTH = 6;
     private static final List<String> CURATOR_PROPERTY_SOURCES = List.of("dbGaP/MTA", " Hub Online Submission");
     private static final List<String> DCC_PROPERTY_SOURCES = List.of(" Hub Online Submission");
+
+    @Value("${radx.opensearch-lambda}") String openSearchLambda;
 
     /**
      * Register a new study based on the MTA form PDF
@@ -581,8 +588,8 @@ public class StudyRegistrationService {
                 //update release date property value
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
                 StudyPropertyValue releaseDate = createPropertyValue(study.getId(), userId, "release_date", formatter.format(LocalDate.now()));
-                studyPropertyValueRepository.save(releaseDate);
-                studyRepository.save(study);
+                studyPropertyValueRepository.saveAndFlush(releaseDate);
+                studyRepository.saveAndFlush(study);
                 emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_APPROVAL);
             }
             case "DCC" -> {
@@ -726,6 +733,11 @@ public class StudyRegistrationService {
         return studyPropertyValue;
     }
 
-
+    /**
+     * This function invokes lambda function to refresh openSearch index
+     */
+    public void triggerOpenSearchRefresh(){
+        LambdaUtils.invokeFunction(awsLambdaClient,openSearchLambda);
+    }
 
 }

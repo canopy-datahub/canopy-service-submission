@@ -55,6 +55,9 @@ public class DataSubmission {
     @Column(name = "modified_by")
     private Integer modifiedBy;
 
+    @Column(name = "date_approved")
+    private Timestamp dateApproved;
+
     @ManyToOne
     @JoinColumn(name="status_id", insertable = false, updatable = false)
     private LkupStatus status;
