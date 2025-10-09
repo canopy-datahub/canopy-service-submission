@@ -34,6 +34,7 @@ radx:
   host-url: ${HostURL}
   accountNumber: ${accountId}
   stepFnMachineArn: ${StepFunctionMachineArn}
+  opensearch-lambda: ${OpensearchRefreshLambda}
 
 management:
   endpoint:

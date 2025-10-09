@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -60,6 +61,10 @@ public class StudyRegistrationController {
         Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
         //TODO: track edits
         String response = studyRegistrationService.editStudyPropertyValues(studyRegistrationDTO, "Curator", shouldSubmit, userId);
+        if(shouldSubmit){
+            //refresh open search docs so study explorer now includes new study after updates are complete
+            studyRegistrationService.triggerOpenSearchRefresh();
+        }
         return ResponseEntity.ok(response);
     }
 
@@ -97,11 +102,12 @@ public class StudyRegistrationController {
         authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR, AccessRole.DATA_SUBMITTER));
         //by default this function deletes the files and submissions associated with study.
         datafileService.deleteFilesAndSubmissions(studyId);
-        log.info("Successfully deleted files and submissions for study id: " + studyId);
+        log.info("Successfully deleted files and submissions for study id: {}", studyId);
         //if it's flagged to delete study, delete the study and its metadata.
         if(deleteStudy.isPresent() && deleteStudy.get()){
             studyRegistrationService.deleteStudiesByCurator(studyId);
-            log.info("Successfully deleted study id: " + studyId);
+            studyRegistrationService.triggerOpenSearchRefresh();
+            log.info("Successfully deleted study id: {}", studyId);
         }
         return ResponseEntity.ok("Successfully deleted study and/or files for study id: " + studyId);
     }

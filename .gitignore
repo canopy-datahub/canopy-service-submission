@@ -1,6 +1,5 @@
 # Compiled class file
 *.class
-/target
 
 # Log file
 *.log
@@ -20,18 +19,27 @@
 *.tar.gz
 *.rar
 
-# IDE & MVN
-.idea/
-.idea/*.xml
-target/
-*.iml
-
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
 
-#Configuration files
-.classpath
-.factorypath
-.project
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
 .settings/
+.project
+.factorypath
+.classpath
+working-directory
+
+# VS Code
+.vscode*
+.DS_Store

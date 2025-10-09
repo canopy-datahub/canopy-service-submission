@@ -13,4 +13,5 @@ public class SubmissionInfoDTO {
 	private Date createdDate;
 	private Date submittedDate;
 	private Date modifiedDate;
+	private Date approvedDate;
 }

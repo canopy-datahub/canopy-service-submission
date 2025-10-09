@@ -54,6 +54,12 @@ public interface DataFileRepository extends JpaRepository<DataFile, Integer> {
 
 	@Query(nativeQuery = true,
 			value="select df.* from data_file df join data_submission ds on df.submission_id=ds.id " +
+					"where ds.study_id=:studyId"
+	)
+	List<DataFile> findDataFilesByStudyId(Integer studyId);
+
+	@Query(nativeQuery = true,
+			value="select df.* from data_file df join data_submission ds on df.submission_id=ds.id " +
 					"where df.source_file_name=:fileName and df.is_current_version=true and ds.study_id=:studyId"
 	)
 	Optional<DataFile> findPreviousVersionByNameAndStudyId(String fileName, Integer studyId);

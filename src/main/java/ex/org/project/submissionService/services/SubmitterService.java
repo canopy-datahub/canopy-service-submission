@@ -78,6 +78,8 @@ public class SubmitterService {
                     throw new FileDeletionException("Error deleting file from database");
                 }
             }
+        } else {
+          throw new DataFileNotFoundException("No data file descriptor found for submission ID: " + submissionId);
         }
         dataSubmissionRepository.deleteById(submissionId);
     }

@@ -270,34 +270,32 @@ public class DataFileService {
         return deletedSuccessfully;
     }
 
+    /**
+     * Deletion of study related files and submissions.
+     * @param studyId is study id
+     */
     public void deleteFilesAndSubmissions(Integer studyId){
-        // Find the study by its ID
         studyRepository.findById(studyId)
                 .orElseThrow(() -> new StudyNotFoundException("Study not found for study ID " + studyId));
-        //get all data submissions
+        //get all files and submissions associated with study and bulk delete
+        //if any study documents are deleted from  submissions (excluding readme, readme files should be deleted); DM team can replace them
+        //get ids of all files (of all status) in study
+        List<Integer> studyFilesIds = dataFileRepository.findDataFilesByStudyId(studyId)
+                .stream().map(DataFile::getId).toList();
+        //get all submission associated with study
         List<DataSubmission> studyDataSubmissions = dataSubmissionRepository.findDistinctByStudyId(studyId);
+        //delete datafile records
+        boolean allFilesDeleted = deleteMultipleDatafiles(studyFilesIds);
+        dataSubmissionRepository.deleteAll(studyDataSubmissions);
+        log.info("Deleted submission records for study id: {}: \n {} ", studyId, StringUtils.join(studyDataSubmissions, "/n"));
 
-        //if the study is not approved, there are no submissions
-        //if study has submissions, delete files and submissions
-        if(!studyDataSubmissions.isEmpty()){
-            //for each associated data submission, delete the files
-            studyDataSubmissions.stream().forEach(dataSubmission -> {
-                List <Integer> fileIds = dataFileRepository.findDataFilesBySubmissionId(dataSubmission.getId())
-                        .stream().map(DataFile::getId)
-                        .collect(Collectors.toList());
-                boolean allFilesDeleted = deleteMultipleDatafiles(fileIds);
-                if(allFilesDeleted){
-                    //update has_datafile flag
-                    StudyPropertyValue hasDataFiles = studyPropertyValueRepository.findByEntityProperty_NameAndStudyId(STUDY_PROP_HAS_DATAFILES, studyId);
-                    if(hasDataFiles!=null){
-                        hasDataFiles.setPropertyValue(StringUtils.capitalize(BooleanUtils.toStringYesNo(!allFilesDeleted)));
-                        studyPropertyValueRepository.save(hasDataFiles);
-
-                    }
-                    //delete the submission
-                    dataSubmissionRepository.delete(dataSubmission);
-                }
-            });
+        if(allFilesDeleted){
+            //update has_datafile flag
+            StudyPropertyValue hasDataFiles = studyPropertyValueRepository.findByEntityProperty_NameAndStudyId(STUDY_PROP_HAS_DATAFILES, studyId);
+            if(hasDataFiles!=null){
+                hasDataFiles.setPropertyValue(StringUtils.capitalize(BooleanUtils.toStringYesNo(!allFilesDeleted)));
+                studyPropertyValueRepository.save(hasDataFiles);
+            }
         }
     }
 

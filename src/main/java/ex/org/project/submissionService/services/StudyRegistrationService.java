@@ -12,9 +12,12 @@ import ex.org.project.submissionService.models.dtos.StudyPropertyValueDTO;
 import ex.org.project.submissionService.models.dtos.StudyRegistrationDTO;
 import ex.org.project.submissionService.models.dtos.UserStudyRegistrationDTO;
 import ex.org.project.submissionService.repositories.*;
+
+import ex.org.project.submissionService.utils.LambdaUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -27,6 +30,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.lambda.LambdaClient;
 
 
 @Slf4j
@@ -48,11 +53,14 @@ public class StudyRegistrationService {
     private final AwsStorageService awsStorageService;
     private final EmailRequestService emailRequestService;
     private final UserFileUploadRepository uploadRepository;
+    private final LambdaClient awsLambdaClient;
 
     private final String CURATOR = "Curator";
     private final String DATA_SUBMITTER = "Center";
     private final Pattern valueIndexMatcher = Pattern.compile("(\\d+)");
     private static final List<String> PROPERTY_SOURCES = List.of("dbGaP/MTA", "Online Submission");
+
+    @Value("${radx.opensearch-lambda}") String openSearchLambda;
 
     /**
      * Register a new study based on the study registration form
@@ -401,6 +409,11 @@ public class StudyRegistrationService {
         return studyPropertyValue;
     }
 
-
+    /**
+     * This function invokes lambda function to refresh openSearch index
+     */
+    public void triggerOpenSearchRefresh(){
+        LambdaUtils.invokeFunction(awsLambdaClient,openSearchLambda);
+    }
 
 }
