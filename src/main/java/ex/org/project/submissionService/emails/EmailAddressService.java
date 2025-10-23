@@ -1,6 +1,6 @@
 package ex.org.project.submissionService.emails;
 
-import ex.org.project.submissionService.auth.AccessRole;
+import ex.org.project.datahub.auth.model.AccessRole;
 import ex.org.project.submissionService.models.LkupCenter;
 import ex.org.project.submissionService.models.Users;
 import ex.org.project.submissionService.repositories.LkupCenterRepository;

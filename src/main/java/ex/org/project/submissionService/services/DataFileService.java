@@ -1,27 +1,22 @@
 package ex.org.project.submissionService.services;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import com.amazonaws.services.macie2.model.CreateClassificationJobResult;
-import com.opencsv.*;
-import ex.org.project.submissionService.auth.UserNotFoundException;
 import com.opencsv.CSVReaderHeaderAware;
 import com.opencsv.CSVReaderHeaderAwareBuilder;
-
+import com.opencsv.RFC4180Parser;
+import com.opencsv.RFC4180ParserBuilder;
+import ex.org.project.datahub.auth.exception.UserNotFoundException;
 import ex.org.project.submissionService.exceptions.custom.*;
 import ex.org.project.submissionService.mappers.S3FileMapper;
+import ex.org.project.submissionService.mappers.StudyMapper;
+import ex.org.project.submissionService.mappers.UploadMapper;
 import ex.org.project.submissionService.models.*;
-import ex.org.project.submissionService.models.DataFileDownload;
 import ex.org.project.submissionService.models.dtos.S3FileDTO;
 import ex.org.project.submissionService.models.dtos.StudiesDTO;
 import ex.org.project.submissionService.models.dtos.UploadFilesDTO;
 import ex.org.project.submissionService.models.dtos.ValidationResultsDTO;
 import ex.org.project.submissionService.repositories.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,10 +26,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import ex.org.project.submissionService.mappers.StudyMapper;
-import ex.org.project.submissionService.mappers.UploadMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static ex.org.project.submissionService.models.Constants.STUDY_PROP_HAS_DATAFILES;
 

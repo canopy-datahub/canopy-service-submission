@@ -1,15 +1,14 @@
 package ex.org.project.submissionService.mappers;
 
-import java.util.List;
-
+import ex.org.project.submissionService.models.DataFile;
+import ex.org.project.submissionService.models.DataFileCategory;
 import ex.org.project.submissionService.models.dtos.BundleFileDTO;
 import ex.org.project.submissionService.models.dtos.BundlesDTO;
 import ex.org.project.submissionService.models.dtos.DataFileDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import ex.org.project.submissionService.models.DataFile;
-import ex.org.project.submissionService.models.DataFileCategory;
+import java.util.List;
 
 
 @Mapper(componentModel = "spring")

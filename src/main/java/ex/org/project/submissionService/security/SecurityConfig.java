@@ -1,27 +1,29 @@
 package ex.org.project.submissionService.security;
 
+import ex.org.project.datahub.auth.config.KeycloakSecurityConfig;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 
+/**
+ * Security configuration for Submission Service.
+ * Extends the shared Keycloak authentication library configuration.
+ */
 @Configuration
-public class SecurityConfig {
+public class SecurityConfig extends KeycloakSecurityConfig {
 
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers(EndpointRequest.to("shutdown")).authenticated()
-            .anyRequest().permitAll()
-        )
-        .csrf(csrf -> csrf
-            .ignoringRequestMatchers(EndpointRequest.to("shutdown"))
-        )
-        .httpBasic();  // must be last in this chain
-
-    return http.build();
+  @Override
+  protected void configureEndpointSecurity(
+      AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth
+  ) throws Exception {
+    auth
+        // Actuator endpoints
+        .requestMatchers(EndpointRequest.to("health")).permitAll()
+        .requestMatchers(EndpointRequest.to("shutdown")).authenticated()
+        
+        // All other endpoints require authentication
+        .anyRequest().authenticated();
   }
 }
 

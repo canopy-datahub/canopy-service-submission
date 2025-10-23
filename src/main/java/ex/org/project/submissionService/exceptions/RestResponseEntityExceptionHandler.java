@@ -1,8 +1,8 @@
 package ex.org.project.submissionService.exceptions;
 
-import ex.org.project.submissionService.auth.UserAuthenticationException;
-import ex.org.project.submissionService.auth.UserAuthorizationException;
-import ex.org.project.submissionService.auth.UserNotFoundException;
+import ex.org.project.datahub.auth.exception.UserAuthenticationException;
+import ex.org.project.datahub.auth.exception.UserAuthorizationException;
+import ex.org.project.datahub.auth.exception.UserNotFoundException;
 import ex.org.project.submissionService.exceptions.custom.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

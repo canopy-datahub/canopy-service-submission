@@ -1,10 +1,11 @@
 package ex.org.project.submissionService.mappers;
+
 import ex.org.project.submissionService.models.DataSubmission;
 import ex.org.project.submissionService.models.ViewStudy;
 import ex.org.project.submissionService.models.dtos.DataSubmissionDTO;
-
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+
 import java.util.List;
 @Mapper(componentModel = "spring")
 public interface DataSubmissionMapper {

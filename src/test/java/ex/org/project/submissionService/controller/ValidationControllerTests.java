@@ -1,6 +1,6 @@
 package ex.org.project.submissionService.controller;
 
-import ex.org.project.submissionService.auth.UserAuthService;
+import ex.org.project.datahub.auth.core.KeycloakAuthenticationService;
 import ex.org.project.submissionService.controllers.ValidationController;
 import ex.org.project.submissionService.models.dtos.ValidationResultsDTO;
 import ex.org.project.submissionService.services.BundleService;
@@ -11,8 +11,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.Jwt;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 class ValidationControllerTests {
 
@@ -23,7 +24,7 @@ class ValidationControllerTests {
     private BundleService bundleService;
 
     @Mock
-    private UserAuthService authService;
+    private KeycloakAuthenticationService authService;
 
     @InjectMocks
     private ValidationController validationController;
@@ -35,16 +36,16 @@ class ValidationControllerTests {
 
     @Test
     void testUpdateFileAcknowledgements_AllFilesWithWarningsAcknowledged_SubmitTrue() {
-        String sessionId = "session123";
+        Jwt jwt = mock(Jwt.class);
         ValidationResultsDTO dto = new ValidationResultsDTO();
         dto.setSubmissionId(1);
 
-        when(authService.checkAuth(anyString(), anyList()))
+        when(authService.checkAuth(any(Jwt.class), anyList()))
                 .thenReturn(1);
         when(validationService.updateFileAck(dto, 1))
                 .thenReturn(true);
 
-        ResponseEntity<Boolean> response = validationController.updateFileAcknowledgements(sessionId, dto, true);
+        ResponseEntity<Boolean> response = validationController.updateFileAcknowledgements(jwt, dto, true);
 
         assertEquals(true, response.getBody());
         verify(validationService, times(1)).updateFileAck(dto, 1);
@@ -53,16 +54,16 @@ class ValidationControllerTests {
 
     @Test
     void testUpdateFileAcknowledgements_AllFilesWithWarningsAcknowledged_SubmitFalse() {
-        String sessionId = "session123";
+        Jwt jwt = mock(Jwt.class);
         ValidationResultsDTO dto = new ValidationResultsDTO();
         dto.setSubmissionId(1);
 
-        when(authService.checkAuth(anyString(), anyList()))
+        when(authService.checkAuth(any(Jwt.class), anyList()))
                 .thenReturn(1);
         when(validationService.updateFileAck(dto, 1))
                 .thenReturn(false);
 
-        ResponseEntity<Boolean> response = validationController.updateFileAcknowledgements(sessionId, dto, false);
+        ResponseEntity<Boolean> response = validationController.updateFileAcknowledgements(jwt, dto, false);
 
         assertEquals(false, response.getBody());
         verify(validationService, times(1)).updateFileAck(dto, 1);
@@ -71,16 +72,16 @@ class ValidationControllerTests {
 
     @Test
     void testUpdateFileAcknowledgements_NotAllFilesWithWarningsAcknowledged_ReturnsFalse() {
-        String sessionId = "session123";
+        Jwt jwt = mock(Jwt.class);
         ValidationResultsDTO dto = new ValidationResultsDTO();
         dto.setSubmissionId(1);
 
-        when(authService.checkAuth(anyString(), anyList()))
+        when(authService.checkAuth(any(Jwt.class), anyList()))
                 .thenReturn(1);
         when(validationService.updateFileAck(dto, 1))
                 .thenReturn(false);
 
-        ResponseEntity<Boolean> response = validationController.updateFileAcknowledgements(sessionId, dto, true);
+        ResponseEntity<Boolean> response = validationController.updateFileAcknowledgements(jwt, dto, true);
 
         assertEquals(false, response.getBody());
         verify(validationService, times(1)).updateFileAck(dto, 1);

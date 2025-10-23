@@ -1,14 +1,13 @@
 package ex.org.project.submissionService.repositories;
 
-import java.util.List;
-
+import ex.org.project.submissionService.models.DataSubmission;
+import ex.org.project.submissionService.models.LkupStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import ex.org.project.submissionService.models.DataSubmission;
-import ex.org.project.submissionService.models.LkupStatus;
+import java.util.List;
 
 @Repository
 public interface DataSubmissionRepository extends JpaRepository<DataSubmission, Integer> {
@@ -27,7 +26,7 @@ public interface DataSubmissionRepository extends JpaRepository<DataSubmission, 
 													  @Param("user_id") Integer userId,
 													  @Param("status")Integer status,
 													  @Param("step_id") Integer stepId);
-  
+
 	List<DataSubmission> findBySubmitterUserIdOrderByDateSubmittedDesc(Integer id);
 
 	List<DataSubmission> findBySubmitterUserIdAndStatusOrderByModifiedAtDesc(Integer id, LkupStatus status);

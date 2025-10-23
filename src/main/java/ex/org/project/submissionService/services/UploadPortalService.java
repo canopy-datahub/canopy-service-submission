@@ -1,6 +1,6 @@
 package ex.org.project.submissionService.services;
 
-import ex.org.project.submissionService.auth.UserNotFoundException;
+import ex.org.project.datahub.auth.exception.UserNotFoundException;
 import ex.org.project.submissionService.emails.EmailRequestService;
 import ex.org.project.submissionService.exceptions.custom.BadDataException;
 import ex.org.project.submissionService.exceptions.custom.FileDeletionException;

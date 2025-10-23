@@ -12,8 +12,8 @@
   <groupId>ex.org.project</groupId>
   <artifactId>SubmissionService</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>submissionService</name>
-  <description>Data Hub Submission Service</description>
+  <name>DataHub Submission Service</name>
+  <description>DataHub Submission Service</description>
   <properties>
     <java.version>17</java.version>
     <spring.cloud.aws.version>3.1.1</spring.cloud.aws.version>
@@ -28,6 +28,21 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <!-- Keycloak OAuth2 dependencies -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-client</artifactId>
+    </dependency>
+    <!-- DataHub Keycloak Authentication Library -->
+    <dependency>
+      <groupId>ex.org.project</groupId>
+      <artifactId>datahub-lib-keycloak-auth</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

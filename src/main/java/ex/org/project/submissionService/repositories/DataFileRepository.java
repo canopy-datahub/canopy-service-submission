@@ -1,17 +1,16 @@
 
 package ex.org.project.submissionService.repositories;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
+import ex.org.project.submissionService.models.DataFile;
 import ex.org.project.submissionService.models.DataFileIds;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import ex.org.project.submissionService.models.DataFile;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface DataFileRepository extends JpaRepository<DataFile, Integer> {
