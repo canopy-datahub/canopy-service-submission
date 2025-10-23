@@ -16,9 +16,11 @@ public class SecurityConfig {
             .requestMatchers(EndpointRequest.to("shutdown")).authenticated()
             .anyRequest().permitAll()
         )
-        .csrf(csrf -> csrf
-            .ignoringRequestMatchers(EndpointRequest.to("shutdown"))
-        )
+        // .csrf(csrf -> csrf
+        //     .ignoringRequestMatchers(EndpointRequest.to("shutdown"))
+        //     .ignoringRequestMatchers("/api/submission-service/v1/**")
+        // )
+        .csrf(csrf -> csrf.disable())
         .httpBasic();  // must be last in this chain
 
     return http.build();
