@@ -165,13 +165,11 @@ public class SFTPService {
                             String bundleStepdescription = "Bundle Files";
                             bundleService.updateStepId(sftpBundles.getSubmissionId(), bundleStepdescription, userId);
 
-                            // boolean validated = validationService.validateFiles(submissionId);
-                            // if (validated) {
-                            //     //update submission validated to true
-                            //     validationService.updateSubmissionIsValidated(submissionId, true);
-                            // }
-
-                            validationService.updateSubmissionIsValidated(submissionId, true);
+                             boolean validated = validationService.validateFiles(submissionId);
+                             if (validated) {
+                                 //update submission validated to true
+                                 validationService.updateSubmissionIsValidated(submissionId, true);
+                             }
                         } catch (ValidationErrorException | IllegalArgumentException e) {
                             log.info("An error occurred while validating files for sftp processing: " + e.getMessage());
                             return false;
