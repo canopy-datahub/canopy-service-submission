@@ -112,7 +112,7 @@ public class StudyRegistrationService {
         Optional<LkupCenter> dccOpt = centerRepository.findByNameContainingIgnoreCase("RADx-UP");
         LkupCenter dcc = dccOpt.get();
         study.setCenter(dcc);
-        study = studyRepository.save(study);
+        study = studyRepository.saveAndFlush(study);
         log.info("New study created: {}", study);
         return study;
     }
@@ -265,7 +265,7 @@ public class StudyRegistrationService {
         LkupStatus status = statusRepository.findByUsageAndName(Constants.USAGE_STUDY, statusName)
             .orElseThrow(() -> new StatusNotFoundException(String.format("Could not find study status entity. Invalid Study Status: %s", statusName)));
         study.setStatus(status);
-        studyRepository.save(study);
+        studyRepository.saveAndFlush(study);
     }
 
     private void updateReleaseDate(Study study, Integer userId) {

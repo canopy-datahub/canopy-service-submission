@@ -106,11 +106,11 @@ public class CDEValidator {
      * @return true if it has tier 1 variables, false if no tier 1 variables exist in file
      */
     private Boolean hasTier1Variable(HashSet<String> fileHeaders) {
-        if (validResponsesMap == null) {
+        if (globalValidResponsesMap == null) {
             readCodebook();
         }
         //get all dcc required tier 1 cde headers for the specific program
-        HashSet<String> programTier1 = new HashSet<>(validResponsesMap.keySet());
+        HashSet<String> programTier1 = new HashSet<>(globalValidResponsesMap.keySet());
         //collect the file's tier 1 headers
         fileTier1Headers = new HashSet<>(CollectionUtils.intersection(programTier1, fileHeaders));
 
