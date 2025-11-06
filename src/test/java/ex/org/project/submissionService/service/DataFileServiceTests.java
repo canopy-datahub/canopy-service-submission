@@ -24,6 +24,7 @@ import ex.org.project.submissionService.repositories.*;
 import ex.org.project.submissionService.services.AwsStorageService;
 import ex.org.project.submissionService.services.DataFileService;
 import ex.org.project.submissionService.services.ValidationService;
+import ex.org.project.submissionService.services.VariableService;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -69,6 +70,7 @@ class DataFileServiceTests {
     private DataFileDownloadRepository dataFileDownloadRepository = mock(DataFileDownloadRepository.class);
     private DataFileRepository dfRepository = mock(DataFileRepository.class);
     private ValidationService validationService = mock(ValidationService.class);
+    private VariableService variableService = mock(VariableService.class);
 
     private final DataFileService dataFileService = new DataFileService(
             s3FileRepository,
@@ -86,7 +88,8 @@ class DataFileServiceTests {
             sasFileDownloadRepository,
             dataFileDownloadRepository,
             studyMapper,
-            s3FileMapper
+            s3FileMapper,
+            variableService
     );
 
     @Captor

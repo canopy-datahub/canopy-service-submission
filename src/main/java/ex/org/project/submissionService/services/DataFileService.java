@@ -59,6 +59,7 @@ public class DataFileService {
     private final DataFileDownloadRepository dataFileDownloadRepository;
     private final StudyMapper studiesMapper;
     private final S3FileMapper s3FileMapper;
+    private final VariableService variableService;
 
     /**
      * Creates a DataFile entity based on an S3File Object
@@ -560,6 +561,9 @@ public class DataFileService {
             //set variable count
             dataFile.setVariablesCount(headers.size());
             dataFileRepository.saveAndFlush(dataFile);
+
+            //update variables table
+            variableService.updateVariablesForDataFile(dataFile);
         } catch (Exception e) {
             log.debug("Unable to parse file contents for datafile " + dataFile.getId()+ ": " + e.getMessage());
             throw new BadDataException("Unable to parse file contents for datafile " + dataFile.getId()+ ": " + e.getMessage());
