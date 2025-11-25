@@ -9,13 +9,6 @@ spring:
     hibernate.ddl-auto: none
     show-sql: false
     open-in-view: false
-  # Keycloak OAuth2 Configuration
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${DATAHUB_KEYCLOAK_ISSUER_URI}
-          jwk-set-uri: ${DATAHUB_KEYCLOAK_JWK_SET_URI}
 
 server:
   port: 8083
@@ -53,7 +46,6 @@ management:
   endpoints:
     enabled-by-default: false
     web:
-      base-path: /actuator
       exposure:
         include: health,shutdown
 
@@ -67,17 +59,12 @@ logging:
       mvc.method.annotation:
         HttpEntityMethodProcessor: trace
 
-# Keycloak Configuration
-keycloak:
-  realm: ${DATAHUB_KEYCLOAK_REALM}
-  resource: ${DATAHUB_KEYCLOAK_CLIENT_ID}
-
-# RAS configuration - DEPRECATED (migrating to Keycloak)
-# ras:
-#   url: ${rasurl}
-#   client:
-#     id: ${rasclientid}
-#     secret: ${rasclientsecret}
+# RAS configuration
+ras:
+  url: ${rasurl}
+  client:
+    id: ${rasclientid}
+    secret: ${rasclientsecret}
 
 ---
 # LOCAL
@@ -89,9 +76,9 @@ spring:
   jpa:
     show-sql: true
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/radx_local}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://radx-dev-postgresql.cxew5pn6q5af.us-east-2.rds.amazonaws.com:5432/RADx_dev
+    username: ${db_username}
+    password: ${db_password}
 
 management:
   endpoint:

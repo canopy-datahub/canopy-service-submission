@@ -1,11 +1,11 @@
 package ex.org.project.submissionService.service;
 
-import ex.org.project.submissionService.emails.EmailRequestService;
 import ex.org.project.submissionService.exceptions.custom.SubmitterCenterException;
 import ex.org.project.submissionService.mappers.ViewStudyMapper;
 import ex.org.project.submissionService.models.*;
 import ex.org.project.submissionService.models.dtos.StudiesDTO;
 import ex.org.project.submissionService.repositories.*;
+import ex.org.project.submissionService.emails.EmailRequestService;
 import ex.org.project.submissionService.services.SubmissionService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,9 +18,8 @@ import org.mockito.MockitoAnnotations;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class SubmissionServiceTests {
 

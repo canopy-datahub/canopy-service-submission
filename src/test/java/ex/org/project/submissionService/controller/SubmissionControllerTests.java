@@ -1,31 +1,27 @@
 package ex.org.project.submissionService.controller;
 
-import ex.org.project.datahub.auth.core.KeycloakAuthenticationService;
-import ex.org.project.datahub.auth.model.AccessRole;
-import ex.org.project.submissionService.controllers.SubmissionController;
-import ex.org.project.submissionService.models.dtos.StudiesDTO;
-import ex.org.project.submissionService.services.BundleService;
-import ex.org.project.submissionService.services.DataFileService;
-import ex.org.project.submissionService.services.SubmissionService;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import ex.org.project.submissionService.auth.AccessRole;
+import ex.org.project.submissionService.auth.UserAuthService;
+import ex.org.project.submissionService.services.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ex.org.project.submissionService.controllers.SubmissionController;
+import ex.org.project.submissionService.models.dtos.StudiesDTO;
 import org.springframework.http.ResponseEntity;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.security.oauth2.jwt.Jwt;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -41,7 +37,7 @@ public class SubmissionControllerTests {
     private  DataFileService datafileService;
 
 	@Mock
-	private KeycloakAuthenticationService authService;
+	private UserAuthService authService;
 
 	@InjectMocks
 	private SubmissionController submissionController;
@@ -54,19 +50,19 @@ public class SubmissionControllerTests {
 
 	@Test
 	public void testGetStudiesByDccName() {
-		Jwt jwt = mock(Jwt.class);
+		String sessionId = "session123";
 		List<StudiesDTO> studiesList = new ArrayList<>();
 		Integer userId = 1;
 
 		// Mock the behavior of the studyService.getStudyPropertyValues() method to
 		// return the studiesList.
-		when(authService.checkAuth(any(Jwt.class), eq(List.of(AccessRole.DATA_SUBMITTER))))
+		when(authService.checkAuth(eq(sessionId), eq(List.of(AccessRole.DATA_SUBMITTER))))
 				.thenReturn(userId);
 		when(studyService.getStudiesByUserCenter(eq(userId)))
 				.thenReturn(studiesList);
 
 		// Call the getStudiesByDccName() method of the controller and store the result.
-		ResponseEntity<List<StudiesDTO>> response = submissionController.getStudiesByUserCenter(jwt);
+		ResponseEntity<List<StudiesDTO>> response = submissionController.getStudiesByUserCenter(sessionId);
 
 		assertNotNull(response);
 		assertEquals(studiesList, response.getBody());

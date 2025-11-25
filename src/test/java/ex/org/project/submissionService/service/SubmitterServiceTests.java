@@ -1,8 +1,8 @@
 
 package ex.org.project.submissionService.service;
 
-import ex.org.project.submissionService.exceptions.custom.DataFileNotFoundException;
 import ex.org.project.submissionService.mappers.SubmitterInfoMapper;
+import ex.org.project.submissionService.exceptions.custom.DataFileNotFoundException;
 import ex.org.project.submissionService.models.*;
 import ex.org.project.submissionService.models.dtos.SubmissionInfoDTO;
 import ex.org.project.submissionService.repositories.DataFileRepository;
@@ -15,10 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;

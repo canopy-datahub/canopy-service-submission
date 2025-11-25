@@ -1,21 +1,26 @@
 package ex.org.project.submissionService.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
 import ex.org.project.submissionService.emails.EmailRequestService;
-import ex.org.project.submissionService.models.DataSubmission;
-import ex.org.project.submissionService.models.LkupStatus;
-import ex.org.project.submissionService.repositories.DataSubmissionRepository;
-import ex.org.project.submissionService.repositories.LkupStatusRepository;
-import ex.org.project.submissionService.services.SubmissionService;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.NoSuchElementException;
-import java.util.Optional;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import ex.org.project.submissionService.models.DataSubmission;
+import ex.org.project.submissionService.models.LkupStatus;
+import ex.org.project.submissionService.repositories.DataSubmissionRepository;
+import ex.org.project.submissionService.repositories.LkupStatusRepository;
+import ex.org.project.submissionService.services.SubmissionService;
 
 
 public class SubmitServiceTests {

@@ -1,8 +1,8 @@
 package ex.org.project.submissionService.models.dtos;
 
-import lombok.Data;
-
 import java.sql.Timestamp;
+
+import lombok.Data;
 
 @Data
 public class DataSubmissionDTO {

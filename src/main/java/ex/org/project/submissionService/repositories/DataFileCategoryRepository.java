@@ -1,8 +1,9 @@
 package ex.org.project.submissionService.repositories;
 
-import ex.org.project.submissionService.models.DataFileCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import ex.org.project.submissionService.models.DataFileCategory;
 
 import java.util.List;
 

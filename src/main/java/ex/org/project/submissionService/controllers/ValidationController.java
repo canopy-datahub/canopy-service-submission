@@ -1,20 +1,20 @@
 package ex.org.project.submissionService.controllers;
 
-import ex.org.project.datahub.auth.core.KeycloakAuthenticationService;
-import ex.org.project.datahub.auth.model.AccessRole;
+import ex.org.project.submissionService.auth.AccessRole;
+import ex.org.project.submissionService.auth.UserAuthService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import ex.org.project.submissionService.exceptions.custom.ValidationErrorException;
 import ex.org.project.submissionService.models.dtos.ValidationResultsDTO;
 import ex.org.project.submissionService.services.BundleService;
 import ex.org.project.submissionService.services.ValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 @Slf4j
 @RequestMapping("/validateFiles")
 @RestController
@@ -23,12 +23,12 @@ public class ValidationController {
 
 	private final ValidationService validationService;
 	private final BundleService bundleService;
-	private final KeycloakAuthenticationService authenticationService;
+	private final UserAuthService authService;
 
 	@PostMapping("/validate")
-	public ResponseEntity<String> cdeValidation(@AuthenticationPrincipal Jwt jwt,
+	public ResponseEntity<String> cdeValidation(@CookieValue(value="chocolateChip", required = false) String sessionId,
 												@RequestParam("submissionId") Integer submissionId) {
-		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
 		//TODO: submission authorization check
 		//TODO: clean up error handling
 		try {
@@ -50,17 +50,17 @@ public class ValidationController {
 	}
 
 	@GetMapping("/getResults")
-	public ValidationResultsDTO getValidationResults(@AuthenticationPrincipal Jwt jwt,
+	public ValidationResultsDTO getValidationResults(@CookieValue(value="chocolateChip", required = false) String sessionId,
 													 @RequestParam("submissionId") Integer submissionId) {
-		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER, AccessRole.DATA_CURATOR));
+		authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER, AccessRole.DATA_CURATOR));
 		return validationService.getSubmissionValidationResults(submissionId);
 	}
 
 	@PostMapping("/acknowledge")
-	public ResponseEntity<Boolean> updateFileAcknowledgements(@AuthenticationPrincipal Jwt jwt,
+	public ResponseEntity<Boolean> updateFileAcknowledgements(@CookieValue(value="chocolateChip", required = false) String sessionId,
 															  @RequestBody ValidationResultsDTO dto,
 															  @RequestParam("submit") Boolean shouldSubmit) {
-		Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
 		//TODO: submission authorization check
 		Boolean allFilesWithWarningsAcknowledged = validationService.updateFileAck(dto, userId);
 		boolean shouldIncrementStep = allFilesWithWarningsAcknowledged && shouldSubmit;

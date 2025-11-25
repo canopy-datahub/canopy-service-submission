@@ -1,7 +1,7 @@
 package ex.org.project.submissionService.services;
 
-import ex.org.project.datahub.auth.exception.UserAuthorizationException;
-import ex.org.project.datahub.auth.exception.UserNotFoundException;
+import ex.org.project.submissionService.auth.UserAuthorizationException;
+import ex.org.project.submissionService.auth.UserNotFoundException;
 import ex.org.project.submissionService.emails.EmailRequestService;
 import ex.org.project.submissionService.emails.StudyRegEmailType;
 import ex.org.project.submissionService.exceptions.custom.*;
@@ -12,22 +12,26 @@ import ex.org.project.submissionService.models.dtos.StudyPropertyValueDTO;
 import ex.org.project.submissionService.models.dtos.StudyRegistrationDTO;
 import ex.org.project.submissionService.models.dtos.UserStudyRegistrationDTO;
 import ex.org.project.submissionService.repositories.*;
+
 import ex.org.project.submissionService.utils.LambdaUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import software.amazon.awssdk.services.lambda.LambdaClient;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.lambda.LambdaClient;
 
 
 @Slf4j

@@ -1,21 +1,18 @@
 package ex.org.project.submissionService.controllers;
 
-import ex.org.project.datahub.auth.core.KeycloakAuthenticationService;
-import ex.org.project.datahub.auth.model.AccessRole;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+import ex.org.project.submissionService.auth.AccessRole;
+import ex.org.project.submissionService.auth.UserAuthService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import ex.org.project.submissionService.services.BundleService;
 import ex.org.project.submissionService.services.SubmissionService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.NoSuchElementException;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
@@ -24,12 +21,12 @@ public class ReviewSubmitController {
 
 	private final SubmissionService submissionService;
 	private final BundleService bundleService;
-	private final KeycloakAuthenticationService authenticationService;
+	private final UserAuthService authService;
 
 	@PostMapping("/submit")
-	public ResponseEntity<String> submit(@AuthenticationPrincipal Jwt jwt,
+	public ResponseEntity<String> submit(@CookieValue(value="chocolateChip", required = false) String sessionId,
 										 @RequestParam("submissionId") Integer submissionId) {
-		Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
 		//TODO: submission authorization check
 		//TODO: refactor errors
 		try {

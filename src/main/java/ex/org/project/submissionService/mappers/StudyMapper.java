@@ -1,7 +1,7 @@
 package ex.org.project.submissionService.mappers;
 
-import ex.org.project.submissionService.models.StudyPropertyValue;
 import ex.org.project.submissionService.models.dtos.StudiesDTO;
+import ex.org.project.submissionService.models.StudyPropertyValue;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

@@ -1,25 +1,26 @@
 package ex.org.project.submissionService.services;
 
-import ex.org.project.submissionService.exceptions.custom.BadDataException;
-import ex.org.project.submissionService.exceptions.custom.CategoryNotFoundException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import ex.org.project.submissionService.exceptions.custom.SubmissionIdInvalidException;
-import ex.org.project.submissionService.mappers.BundleMapper;
 import ex.org.project.submissionService.mappers.DataFileMapper;
 import ex.org.project.submissionService.mappers.SubmissionStepMapper;
 import ex.org.project.submissionService.models.*;
 import ex.org.project.submissionService.models.dtos.*;
 import ex.org.project.submissionService.repositories.*;
 import ex.org.project.submissionService.utils.BundlingUtils;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import ex.org.project.submissionService.mappers.BundleMapper;
+import ex.org.project.submissionService.exceptions.custom.BadDataException;
+import ex.org.project.submissionService.exceptions.custom.CategoryNotFoundException;
+import lombok.RequiredArgsConstructor;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -68,7 +69,7 @@ public class BundleService {
 		if (associatedMetadataFile != null) {
 			dataFile.setMetadataFileId(associatedMetadataFile.getId());
 		}
-
+        
         dataFileRepository.save(dataFile);
     }
 
@@ -268,31 +269,31 @@ public class BundleService {
 			dataFileRepository.save(dataFile);
 		}
 	}
-
+	
 	/**
     Gets all the data file categories and returns them grouped by category group
     @return Map of "Category Group" -> [Data File Categories]
     */
 	public Map<String, List<DataFileCategory>> getDataFileCategories() {
-
+		
 		List<DataFileCategory> categories = dataFileCategoryRepository.findAll();
-
+		
 		return categories.stream().collect(Collectors.groupingBy(DataFileCategory::getCategoryGroup));
 	}
 
 	/**
 	 * Updates the step ID of a data submission based on the provided step description.
-	 *
+	 * 
 	 * @param submissionId    the ID of the data submission
 	 * @param stepDescription the current step description
 	 */
 
 	public void updateStepId(Integer submissionId, String stepDescription, Integer userId) {
-
+		
 		// Find the data submission by ID
 		DataSubmission dataSubmission = dataSubmissionRepository.findById(submissionId)
 				.orElseThrow(() -> new NoSuchElementException("Submission not found with ID: " + submissionId));
-
+		
 		// Convert step descriptions to the corresponding updated step description
 		switch (stepDescription) {
 		case "Upload Files":
@@ -313,7 +314,7 @@ public class BundleService {
 		default:
 			throw new IllegalArgumentException("Invalid step description: " + stepDescription);
 		}
-
+		
 		// Find the ID of the updated step based on the updated step description
 		Optional<LkupSubmissionStep> lkupSubmissionStepdesc = lkupSubmissionStepRepository.findByDescription(stepDescription);
 
@@ -326,7 +327,7 @@ public class BundleService {
 
 	/**
 	 * Retrieves the submission information for a given submission ID.
-	 *
+	 * 
 	 * @param submissionId the ID of the data submission
 	 * @return the SubmissionInfoDTO object containing the submission information
 	 * @throws NoSuchElementException if the data submission is not found

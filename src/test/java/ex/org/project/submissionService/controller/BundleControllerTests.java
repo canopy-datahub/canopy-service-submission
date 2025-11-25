@@ -1,10 +1,14 @@
 package ex.org.project.submissionService.controller;
 
 
-import ex.org.project.datahub.auth.core.KeycloakAuthenticationService;
+import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
+
+import ex.org.project.submissionService.auth.UserAuthService;
 import ex.org.project.submissionService.controllers.BundleController;
 import ex.org.project.submissionService.models.dtos.SubmissionBundlesDTO;
-import ex.org.project.submissionService.services.BundleService;
+import ex.org.project.submissionService.services.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,11 +16,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.junit.Assert.assertNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -26,7 +25,7 @@ public class BundleControllerTests {
     private BundleService bundleService;
 
     @Mock
-    private KeycloakAuthenticationService authService;
+    private UserAuthService authService;
 
     @InjectMocks
     private BundleController bundleController;

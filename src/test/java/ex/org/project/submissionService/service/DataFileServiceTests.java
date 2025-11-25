@@ -1,12 +1,25 @@
 package ex.org.project.submissionService.service;
 
-import ex.org.project.submissionService.exceptions.custom.*;
+import ex.org.project.submissionService.exceptions.custom.StatusNotFoundException;
+import ex.org.project.submissionService.exceptions.custom.SubmissionIdInvalidException;
 import ex.org.project.submissionService.mappers.S3FileMapper;
 import ex.org.project.submissionService.mappers.S3FileMapperImpl;
 import ex.org.project.submissionService.mappers.StudyMapper;
+import ex.org.project.submissionService.exceptions.custom.EmptyParameterException;
+import ex.org.project.submissionService.exceptions.custom.StudyNotFoundException;
 import ex.org.project.submissionService.models.*;
+import ex.org.project.submissionService.exceptions.custom.DataFileNotFoundException;
+import ex.org.project.submissionService.models.DataFile;
+import ex.org.project.submissionService.models.DataFileCategory;
+import ex.org.project.submissionService.models.LkupStatus;
+import ex.org.project.submissionService.models.S3File;
+
 import ex.org.project.submissionService.models.dtos.S3FileDTO;
 import ex.org.project.submissionService.models.dtos.ValidationResultsDTO;
+import ex.org.project.submissionService.repositories.DataFileCategoryRepository;
+import ex.org.project.submissionService.repositories.DataFileRepository;
+import ex.org.project.submissionService.repositories.LkupStatusRepository;
+import ex.org.project.submissionService.repositories.S3FileRepository;
 import ex.org.project.submissionService.repositories.*;
 import ex.org.project.submissionService.services.AwsStorageService;
 import ex.org.project.submissionService.services.DataFileService;
@@ -29,7 +42,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import static org.junit.jupiter.api.Assertions.*;
+
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 

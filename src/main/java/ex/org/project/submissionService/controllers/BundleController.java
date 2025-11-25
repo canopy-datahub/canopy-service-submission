@@ -1,7 +1,7 @@
 package ex.org.project.submissionService.controllers;
 
-import ex.org.project.datahub.auth.core.KeycloakAuthenticationService;
-import ex.org.project.datahub.auth.model.AccessRole;
+import ex.org.project.submissionService.auth.AccessRole;
+import ex.org.project.submissionService.auth.UserAuthService;
 import ex.org.project.submissionService.exceptions.custom.BadDataException;
 import ex.org.project.submissionService.models.dtos.GetBundleFilesDTO;
 import ex.org.project.submissionService.models.dtos.SubmissionBundlesDTO;
@@ -11,11 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/bundle")
@@ -23,20 +22,20 @@ public class BundleController {
 
     private final BundleService bundleService;
     private final DataFileService dataFileService;
-    private final KeycloakAuthenticationService authenticationService;
+    private final UserAuthService authService;
 
     @GetMapping("/get")
-    public SubmissionBundlesDTO getBundles(@AuthenticationPrincipal Jwt jwt,
+    public SubmissionBundlesDTO getBundles(@CookieValue(value="chocolateChip", required = false) String sessionId,
                                            @RequestParam("submissionId") Integer submissionId) {
-        authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+        authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
         //TODO: submission authorization check
         return bundleService.getBundles(submissionId);
     }
 
     @PostMapping("/update")
-    public ResponseEntity<String> updateBundles(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<String> updateBundles(@CookieValue(value="chocolateChip", required = false) String sessionId,
                                                 @RequestBody SubmissionBundlesDTO dto) {
-        Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+        Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
         //TODO: bundle authorization check
         try {
             bundleService.updateBundles(dto);
@@ -52,27 +51,27 @@ public class BundleController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteBundle(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<String> deleteBundle(@CookieValue(value="chocolateChip", required = false) String sessionId,
                                                @RequestParam("fileId") Integer fileId) {
-        authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+        authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
         //TODO: bundle authorization check
         List<Integer> successfulFileIds = dataFileService.deleteBundle(fileId);
         return new ResponseEntity<>("Files deleted: " + successfulFileIds, HttpStatus.OK);
     }
 
     @GetMapping("/getFiles")
-    public ResponseEntity<GetBundleFilesDTO> getBundleFiles(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<GetBundleFilesDTO> getBundleFiles(@CookieValue(value="chocolateChip", required = false) String sessionId,
                                             @RequestParam("fileId") Integer fileId){
-        authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+        authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
         //TODO: bundle authorization check
         GetBundleFilesDTO files = bundleService.getBundleFiles(fileId);
         return ResponseEntity.ok().body(files);
     }
 
     @PostMapping("/previousPage")
-    public ResponseEntity<String> goBackAndUploadFiles(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<String> goBackAndUploadFiles(@CookieValue(value="chocolateChip", required = false) String sessionId,
                                                        @RequestParam("submissionId")Integer submissionId){
-        authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+        authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
         bundleService.goBackAndUploadFiles(submissionId);
         return ResponseEntity.ok().build();
     }

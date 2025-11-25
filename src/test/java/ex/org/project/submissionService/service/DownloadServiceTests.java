@@ -3,6 +3,7 @@ package ex.org.project.submissionService.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ex.org.project.submissionService.models.DataFile;
+
 import ex.org.project.submissionService.models.ValidationResult;
 import ex.org.project.submissionService.repositories.DataFileRepository;
 import ex.org.project.submissionService.repositories.DataSubmissionRepository;
@@ -12,17 +13,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.*;
 import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.mockito.Mockito.*;
+
+import java.io.IOException;
+import java.util.*;
 
 public class DownloadServiceTests {
     @Mock

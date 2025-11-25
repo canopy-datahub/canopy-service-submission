@@ -1,6 +1,6 @@
  package ex.org.project.submissionService.service;
 
- import ex.org.project.datahub.auth.exception.UserAuthorizationException;
+ import ex.org.project.submissionService.auth.UserAuthorizationException;
  import ex.org.project.submissionService.emails.EmailRequestService;
  import ex.org.project.submissionService.exceptions.custom.*;
  import ex.org.project.submissionService.mappers.*;

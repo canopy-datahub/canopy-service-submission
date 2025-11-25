@@ -1,6 +1,6 @@
 package ex.org.project.submissionService.controller;
 
-import ex.org.project.datahub.auth.core.KeycloakAuthenticationService;
+import ex.org.project.submissionService.auth.UserAuthService;
 import ex.org.project.submissionService.controllers.SubmitterDashboardController;
 import ex.org.project.submissionService.models.dtos.SubmissionInfoDTO;
 import ex.org.project.submissionService.services.SubmitterService;
@@ -16,11 +16,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.security.oauth2.jwt.Jwt;
-
 import static org.aspectj.bridge.MessageUtil.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -31,23 +28,23 @@ public class SubmitterDashboardControllerTests {
     private SubmitterService submitterService;
 
     @Mock
-    private KeycloakAuthenticationService authService;
+    private UserAuthService authService;
 
     @InjectMocks
     private SubmitterDashboardController submitterDashboardController;
 
     @Test
     void testGetSubmissions() {
-        Jwt jwt = mock(Jwt.class);
+        String sessionId = "session123";
         String status = "in_progress";
         List<SubmissionInfoDTO> submissions = new ArrayList<>();
 
         when(submitterService.getSubmissions(anyInt(), anyString()))
                 .thenReturn(submissions);
-        when(authService.checkAuth(any(Jwt.class), anyList()))
+        when(authService.checkAuth(anyString(), anyList()))
                 .thenReturn(1);
 
-        ResponseEntity<?> response = submitterDashboardController.getSubmissions(jwt, status);
+        ResponseEntity<?> response = submitterDashboardController.getSubmissions(sessionId, status);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(submissions, response.getBody());
         verify(submitterService).getSubmissions(1, "in_progress");
@@ -55,14 +52,14 @@ public class SubmitterDashboardControllerTests {
 
     @Test
     void testGetSubmissions_whenNoSubmissionsFound() {
-        Jwt jwt = mock(Jwt.class);
+        String sessionId = "session123";
         String status = "in_progress";
         when(submitterService.getSubmissions(anyInt(), anyString()))
                 .thenReturn(Collections.emptyList());
-        when(authService.checkAuth(any(Jwt.class), anyList()))
+        when(authService.checkAuth(anyString(), anyList()))
                 .thenReturn(1);
 
-        ResponseEntity<?> response = submitterDashboardController.getSubmissions(jwt, status);
+        ResponseEntity<?> response = submitterDashboardController.getSubmissions(sessionId, status);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(Collections.emptyList(), response.getBody());
         verify(submitterService).getSubmissions(1, "in_progress");
@@ -70,23 +67,21 @@ public class SubmitterDashboardControllerTests {
 
     @Test
     void deleteSubmission_shouldDeleteSubmissionAndReturnOk() {
-        Jwt jwt = mock(Jwt.class);
+        String sessionId = "session123";
         Integer submissionId = 1;
-        when(authService.checkAuth(any(Jwt.class), anyList())).thenReturn(1);
-        submitterDashboardController.deleteSubmission(jwt, submissionId);
+        submitterDashboardController.deleteSubmission(sessionId, submissionId);
         verify(submitterService, times(1)).deleteSubmission(submissionId);
     }
 
     @Test
     void deleteSubmission_shouldHandleExceptionAndReturnInternalServerError() {
         // Setup
-        Jwt jwt = mock(Jwt.class);
+        String sessionId = "session123";
         Integer submissionId = 1;
-        when(authService.checkAuth(any(Jwt.class), anyList())).thenReturn(1);
         doThrow(new RuntimeException("Failed to delete submission")).when(submitterService)
                 .deleteSubmission(submissionId);
         try {
-            submitterDashboardController.deleteSubmission(jwt, submissionId);
+            submitterDashboardController.deleteSubmission(sessionId, submissionId);
 
             fail("Expected exception to be thrown");
         } catch (RuntimeException ex) {
