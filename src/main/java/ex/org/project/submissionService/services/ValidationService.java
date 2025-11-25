@@ -47,6 +47,7 @@ public class ValidationService {
     private final DataFileRepository dataFileRepository;
     private final LkupCenterRepository lkupCenterRepository;
     private final AwsStorageService awsStorageService;
+    private final VariableService variableService;
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
@@ -224,7 +225,7 @@ public class ValidationService {
         InputStream object = Objects.requireNonNull(awsStorageService.getS3FileContent(s3File));
 
         //get s3 file key from path to access file in s3 needed for validation
-        CDEValidator cdeValidator = new CDEValidator(dataFile, object);
+        CDEValidator cdeValidator = new CDEValidator(dataFile, object, variableService);
         String  results = null;
         try {
             //get the validation result object from cde validator

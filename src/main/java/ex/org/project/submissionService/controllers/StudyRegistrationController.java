@@ -31,8 +31,15 @@ public class StudyRegistrationController {
     public ResponseEntity<Map<String, Integer>> uploadNewStudyAsCurator(@AuthenticationPrincipal Jwt jwt,
                                                                @RequestBody StudyRegistrationDTO studyRegistrationDTO,
                                                                @RequestParam Boolean shouldSubmit) {
-        Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
-        return new ResponseEntity<>(studyRegistrationService.registerNewStudy(studyRegistrationDTO, "Curator", userId, shouldSubmit), HttpStatus.CREATED);
+        Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
+
+        Map<String, Integer> response = studyRegistrationService.registerNewStudy(studyRegistrationDTO, "Curator", userId, shouldSubmit);
+//        if(shouldSubmit){
+//            //refresh open search docs so study explorer now includes new study after updates are complete
+//            studyRegistrationService.triggerOpenSearchRefresh();
+//        }
+      return new ResponseEntity<>(response, HttpStatus.CREATED);
+
     }
 
     @PostMapping("/center/create")
@@ -57,10 +64,10 @@ public class StudyRegistrationController {
         Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
         //TODO: track edits
         String response = studyRegistrationService.editStudyPropertyValues(studyRegistrationDTO, "Curator", shouldSubmit, userId);
-        if(shouldSubmit){
-            //refresh open search docs so study explorer now includes new study after updates are complete
-            studyRegistrationService.triggerOpenSearchRefresh();
-        }
+//        if(shouldSubmit){
+//            //refresh open search docs so study explorer now includes new study after updates are complete
+//            studyRegistrationService.triggerOpenSearchRefresh();
+//        }
         return ResponseEntity.ok(response);
     }
 

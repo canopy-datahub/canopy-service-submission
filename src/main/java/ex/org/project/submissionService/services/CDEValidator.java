@@ -36,13 +36,15 @@ public class CDEValidator {
     private Integer totalWarnings = 0;
     private List<String> header;
     private HashSet<String> missingHeaders;
+    private final VariableService variableService;
 
     private final HashSet<String> invalidZtca = new HashSet<String>(Arrays.asList("036", "059", " 063", "102", "203", "556", "692", "790", "821", "823", "830", "831", "878", "879",
             "884", "890", "893"));
 
-    public CDEValidator(DataFile dataFile, InputStream object) {
+    public CDEValidator(DataFile dataFile, InputStream object, VariableService variableService) {
         this.object = Objects.requireNonNull(object);
         this.dataFile = Objects.requireNonNull(dataFile);
+        this.variableService = Objects.requireNonNull(variableService);
         this.validationResult = new ValidationResult(dataFile);
         this.missingHeaders = new HashSet<>();
         performCDEValidation();
@@ -242,6 +244,8 @@ public class CDEValidator {
                 csvRecordCount = (int) csvReader.getRecordsRead();
                 dataFile.setVariablesCount(header.size());
                 dataFile.setSampleSize(csvRecordCount -1); //set sample size all records excluding header
+                //update variables table
+                variableService.updateVariablesForDataFile(dataFile);
             }
         }
         catch (IOException e) {
