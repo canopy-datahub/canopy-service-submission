@@ -1,6 +1,5 @@
 package ex.org.project.submissionService.security;
 
-import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -69,8 +68,78 @@ public class SecurityConfig {
         // Disable CSRF - not needed for stateless JWT authentication
         .csrf(csrf -> csrf.disable())
         
-        // Authorize all API requests
+        // Authorize requests
         .authorizeHttpRequests(auth -> auth
+            // Submission endpoints
+            .requestMatchers(
+                "/getStudies",
+                "/create-submission",
+                "/getCategories",
+                "/submissionInfo",
+                "/deleteFiles",
+                "/replaceFile"
+            ).authenticated()
+            // Curator endpoints
+            .requestMatchers(
+                "/curator/getSubmissions",
+                "/curator/getFilesBySubm",
+                "/curator/processFiles",
+                "/curator/all-submission-files"
+            ).authenticated()
+            // Upload portal endpoints
+            .requestMatchers(
+                "/uploadPortal/upload/**",
+                "/uploadPortal/getStudies",
+                "/uploadPortal/curator/dashboard",
+                "/uploadPortal/curator/dashboard/delete"
+            ).authenticated()
+            // Study registration endpoints
+            .requestMatchers(
+                "/study/curator/create",
+                "/study/center/create",
+                "/study/getValues",
+                "/study/curator/edit",
+                "/study/center/edit",
+                "/study/center/studies",
+                "/study/curator/studies",
+                "/study/delete"
+            ).authenticated()
+            // Upload files endpoints
+            .requestMatchers(
+                "/uploadFiles/getFiles",
+                "/uploadFiles/multiple",
+                "/uploadFiles/createBundles",
+                "/uploadFiles/processSFTP"
+            ).authenticated()
+            // Validation endpoints
+            .requestMatchers(
+                "/validateFiles/validate",
+                "/validateFiles/getResults",
+                "/validateFiles/acknowledge"
+            ).authenticated()
+            // Submitter dashboard endpoints
+            .requestMatchers(
+                "/getSubmissions",
+                "/deleteSubmission"
+            ).authenticated()
+            // Review and submit endpoints
+            .requestMatchers(
+                "/reviewAndSubmit/submit"
+            ).authenticated()
+            // Download endpoints
+            .requestMatchers(
+                "/download/validationErrorsByFile",
+                "/download/validationErrorsBySubmission"
+            ).authenticated()
+            // Bundle endpoints
+            .requestMatchers(
+                "/bundle/get",
+                "/bundle/update",
+                "/bundle/delete",
+                "/bundle/getFiles",
+                "/bundle/previousPage"
+            ).authenticated()
+            // All other endpoints require authentication
             .anyRequest().authenticated()
         )
         

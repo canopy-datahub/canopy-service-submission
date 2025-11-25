@@ -31,7 +31,7 @@ public class StudyRegistrationController {
     public ResponseEntity<Map<String, Integer>> uploadNewStudyAsCurator(@AuthenticationPrincipal Jwt jwt,
                                                                @RequestBody StudyRegistrationDTO studyRegistrationDTO,
                                                                @RequestParam Boolean shouldSubmit) {
-        Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
+        Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
 
         Map<String, Integer> response = studyRegistrationService.registerNewStudy(studyRegistrationDTO, "Curator", userId, shouldSubmit);
 //        if(shouldSubmit){
