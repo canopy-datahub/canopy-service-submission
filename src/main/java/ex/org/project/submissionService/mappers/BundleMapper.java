@@ -1,7 +1,7 @@
 package ex.org.project.submissionService.mappers;
 
-import ex.org.project.submissionService.models.dtos.BundleDTO;
 import ex.org.project.submissionService.models.DataFile;
+import ex.org.project.submissionService.models.dtos.BundleDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

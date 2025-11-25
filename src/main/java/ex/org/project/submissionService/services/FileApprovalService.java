@@ -1,5 +1,30 @@
 package ex.org.project.submissionService.services;
 
+import com.opencsv.CSVWriter;
+import ex.org.project.datahub.auth.exception.UserNotFoundException;
+import ex.org.project.submissionService.emails.DataIngestEmailType;
+import ex.org.project.submissionService.emails.EmailRequestService;
+import ex.org.project.submissionService.exceptions.custom.*;
+import ex.org.project.submissionService.mappers.DataFileMapper;
+import ex.org.project.submissionService.mappers.DataSubmissionMapper;
+import ex.org.project.submissionService.mappers.SubmissionByCuratorMapper;
+import ex.org.project.submissionService.models.*;
+import ex.org.project.submissionService.models.dtos.*;
+import ex.org.project.submissionService.repositories.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,42 +34,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import com.opencsv.CSVWriter;
-import ex.org.project.submissionService.emails.DataIngestEmailType;
-import ex.org.project.submissionService.exceptions.custom.*;
-import ex.org.project.submissionService.models.*;
-import ex.org.project.submissionService.models.dtos.*;
-
-import ex.org.project.submissionService.auth.UserNotFoundException;
-import ex.org.project.submissionService.emails.EmailRequestService;
-
-import ex.org.project.submissionService.exceptions.custom.BadDataException;
-import ex.org.project.submissionService.exceptions.custom.DataFileNotFoundException;
-import ex.org.project.submissionService.exceptions.custom.FileDeletionException;
-
-import ex.org.project.submissionService.models.dtos.DataSubmissionDTO;
-import ex.org.project.submissionService.models.dtos.SubmissionApprovalDTO;
-import ex.org.project.submissionService.mappers.SubmissionByCuratorMapper;
-import ex.org.project.submissionService.repositories.*;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataAccessException;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-
-import ex.org.project.submissionService.mappers.DataFileMapper;
-import ex.org.project.submissionService.mappers.DataSubmissionMapper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 
 @Slf4j
 @RequiredArgsConstructor

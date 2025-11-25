@@ -1,5 +1,6 @@
 package ex.org.project.submissionService.service;
 
+import ex.org.project.submissionService.emails.EmailRequestService;
 import ex.org.project.submissionService.exceptions.custom.BadDataException;
 import ex.org.project.submissionService.exceptions.custom.DataFileNotFoundException;
 import ex.org.project.submissionService.mappers.DataFileMapper;
@@ -12,7 +13,6 @@ import ex.org.project.submissionService.models.dtos.DetailsDTO;
 import ex.org.project.submissionService.models.dtos.SubmissionApprovalDTO;
 import ex.org.project.submissionService.repositories.*;
 import ex.org.project.submissionService.services.DataFileService;
-import ex.org.project.submissionService.emails.EmailRequestService;
 import ex.org.project.submissionService.services.FileApprovalService;
 import ex.org.project.submissionService.services.StorageService;
 import org.junit.jupiter.api.Test;

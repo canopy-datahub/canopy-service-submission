@@ -1,7 +1,6 @@
 package ex.org.project.submissionService.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVWriter;
 import ex.org.project.submissionService.exceptions.custom.BadDataException;
@@ -14,9 +13,8 @@ import ex.org.project.submissionService.repositories.DataSubmissionRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.springframework.stereotype.Service;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;

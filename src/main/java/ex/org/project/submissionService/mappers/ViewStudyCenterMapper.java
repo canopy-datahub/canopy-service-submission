@@ -5,6 +5,7 @@ import ex.org.project.submissionService.models.ViewStudy;
 import ex.org.project.submissionService.models.dtos.UserStudyRegistrationDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+
 import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ViewStudyCenterMapper {
