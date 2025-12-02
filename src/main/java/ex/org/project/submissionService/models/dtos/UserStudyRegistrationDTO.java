@@ -8,7 +8,6 @@ import java.sql.Timestamp;
 public class UserStudyRegistrationDTO {
 
     private Integer studyId;
-    private String Phs;
     private String studyName;
     private String status;
     private Timestamp createdAt;

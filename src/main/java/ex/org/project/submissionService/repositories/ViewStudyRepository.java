@@ -45,26 +45,26 @@ public interface ViewStudyRepository extends JpaRepository<ViewStudy, Integer> {
 
     @Query(
             value = "select vs.* from view_study vs join study s on vs.study_id=s.id " +
-                    "where s.center_id=:centerId and vs.status='Approved' order by vs.phs",
+                    "where s.center_id=:centerId and vs.status='Approved' order by vs.study_id",
             nativeQuery = true
     )
-    List<ViewStudy> findApprovedStudiesByCenterIdOrderByPhs(Integer centerId);
+    List<ViewStudy> findApprovedStudiesByCenterIdOrderByStudyId(Integer centerId);
 
     @Query(
-            value = "select * from view_study where phs in ( " +
-                    "select distinct study_phs from view_current_hub_content_data " +
-                    "group by study_phs " +
+            value = "select * from view_study where study_id in ( " +
+                    "select distinct study_id from view_current_hub_content_data " +
+                    "group by study_id " +
                     "having  count(submission_id) filter (where submission_id is null or submission_status != 'completed') = 0) " +
                     "and status='Approved' and center=:centerName " +
-                    "order by phs",
+                    "order by study_id",
             nativeQuery = true
     )
     List<ViewStudy> findAllByCenterWithoutInProgressSubmissions(String centerName);
 
     @Query(nativeQuery = true,
-    value = "select vs.phs from view_study vs join study s on vs.study_id=s.id " +
+    value = "select vs.study_id from view_study vs join study s on vs.study_id=s.id " +
             "join data_submission ds on ds.study_id = s.id where ds.id in :submissionIds")
-    List<String> findPhsBySubmissionIds(Collection<Integer> submissionIds);
+    List<String> findStudyIdBySubmissionIds(Collection<Integer> submissionIds);
 
     @Query(
             value = "select vs.* from view_study vs join study s on vs.study_id=s.id where s.center_id=:centerId " +
@@ -74,7 +74,7 @@ public interface ViewStudyRepository extends JpaRepository<ViewStudy, Integer> {
     List<ViewStudy> findCenterStudiesByStatus(Integer centerId, String status);
 
 
-    List<ViewStudy> findAllBySubmissionStatusEqualsIgnoreCaseOrderByPhs(String submissionStatus);
+    List<ViewStudy> findAllBySubmissionStatusEqualsIgnoreCaseOrderByStudyId(String submissionStatus);
 
     @Query(
             value = "select vs.* from view_study vs where vs.status =:status order by vs.created_at",

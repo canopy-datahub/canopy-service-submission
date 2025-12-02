@@ -573,10 +573,10 @@ public class FileApprovalService {
 		}
 
 		Optional<ViewStudy> viewStudy = viewStudyRepository.findBySubmissionId(submissionId);
-		String phs = viewStudy.map(study -> study.getPhs() + "_").orElse("");
+		String study_id = viewStudy.map(study -> study.getStudyId() + "_").orElse("");
 
 		//create temp dir for files in request
-		final String zipName = workingDirectory + phs + "BundledSubmissionFiles";
+		final String zipName = workingDirectory + study_id + "BundledSubmissionFiles";
 		File zipDir = new File(zipName);
 		if(!zipDir.exists()){
 			zipDir.mkdirs();

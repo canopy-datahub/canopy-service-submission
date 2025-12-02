@@ -341,7 +341,6 @@ public class FileApprovalServiceTests {
         user.setFirstName("Test");
         user.setLastName("McTestington");
         ViewStudy study = new ViewStudy();
-        study.setPhs("phs123456");
         study.setStudyName("Study Name");
         study.setStudyId(10);
         study.setCenter("BAH");
@@ -361,7 +360,6 @@ public class FileApprovalServiceTests {
         assertEquals("BAH", response.getCenter());
         assertEquals("Test McTestington", response.getCenterRep());
         assertEquals("Study Name", response.getStudyName());
-        assertEquals("phs123456", response.getPhs());
         assertEquals(1, response.getBundles().size());
         assertFalse(response.getBundles().get(0).getDictFailed());
         assertFalse(response.getBundles().get(0).getMetaFailed());
@@ -381,7 +379,6 @@ public class FileApprovalServiceTests {
         user.setFirstName("Test");
         user.setLastName("McTestington");
         ViewStudy study = new ViewStudy();
-        study.setPhs("phs123456");
         study.setStudyName("Study Name");
         study.setStudyId(10);
         study.setCenter("BAH");
@@ -401,7 +398,6 @@ public class FileApprovalServiceTests {
         assertEquals("BAH", response.getCenter());
         assertEquals("Test McTestington", response.getCenterRep());
         assertEquals("Study Name", response.getStudyName());
-        assertEquals("phs123456", response.getPhs());
         assertEquals(2, response.getBundles().size());
         assertTrue(response.getBundles().get(0).getDictFailed());
         assertFalse(response.getBundles().get(0).getMetaFailed());
@@ -422,7 +418,6 @@ public class FileApprovalServiceTests {
         user.setFirstName("Test");
         user.setLastName("McTestington");
         ViewStudy study = new ViewStudy();
-        study.setPhs("phs123456");
         study.setStudyName("Study Name");
         study.setStudyId(10);
         study.setCenter("BAH");
@@ -442,7 +437,6 @@ public class FileApprovalServiceTests {
         assertEquals("BAH", response.getCenter());
         assertEquals("Test McTestington", response.getCenterRep());
         assertEquals("Study Name", response.getStudyName());
-        assertEquals("phs123456", response.getPhs());
         assertEquals(2, response.getBundles().size());
         assertTrue(response.getBundles().get(0).getDictFailed());
         assertFalse(response.getBundles().get(0).getMetaFailed());

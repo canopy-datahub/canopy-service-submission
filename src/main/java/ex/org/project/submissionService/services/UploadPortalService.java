@@ -52,11 +52,11 @@ public class UploadPortalService {
         S3File uploadedFile = storageService.uploadPortalFile(file, userId);
         UserFileUpload userFileUpload = new UserFileUpload(uploadedFile, study.getStudyId());
         uploadRepository.save(userFileUpload);
-        emailRequestService.sendUploadPortalEmail(uploadedFile.getFileName(), study.getPhsTitle(), user);
+        emailRequestService.sendUploadPortalEmail(uploadedFile.getFileName(), study.getStudyIdTitle(), user);
     }
 
     public List<StudiesDTO> getApprovedStudies() {
-        List<ViewStudy> studies = viewStudyRepository.findAllBySubmissionStatusEqualsIgnoreCaseOrderByPhs("Approved");
+        List<ViewStudy> studies = viewStudyRepository.findAllBySubmissionStatusEqualsIgnoreCaseOrderByStudyId("Approved");
         return viewStudyMapper.toDTOs(studies);
     }
 

@@ -17,9 +17,6 @@ public class ViewStudy {
     @Column(name = "study_id")
     private Integer studyId;
 
-    @Column(name="phs")
-    private String phs;
-
     @Column(name="title")
     private String studyName;
 
@@ -34,7 +31,7 @@ public class ViewStudy {
 
     private String center;
 
-    public String getPhsTitle(){
-        return String.format("(%s) %s", phs, studyName);
+    public String getStudyIdTitle(){
+        return String.format("(%s) %s", studyId, studyName);
     }
 }

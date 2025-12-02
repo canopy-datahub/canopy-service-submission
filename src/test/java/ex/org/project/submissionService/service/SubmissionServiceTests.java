@@ -65,7 +65,6 @@ class SubmissionServiceTests {
 
         ViewStudy vstudy = new ViewStudy();
         vstudy.setStudyName("Test Study Name");
-        vstudy.setPhs("TestPhsNumber");
         vstudy.setStudyId(10);
         List<ViewStudy> viewStudyList = List.of(vstudy);
 

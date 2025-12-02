@@ -13,7 +13,7 @@ import java.util.List;
 public interface UserFileUploadMapper {
 
     @Mapping(source = "userFileUpload.uploadUser.fullName", target = "uploadBy")
-    @Mapping(source = "userFileUpload.viewStudy.phsTitle", target = "study")
+    @Mapping(source = "userFileUpload.viewStudy.studyName", target = "study")
     @Mapping(source = "userFileUpload.s3File", target = "isDeleted", qualifiedByName = "isDeleted")
     UploadPortalCuratorDashboardDTO mapToDto(UserFileUpload userFileUpload);
 

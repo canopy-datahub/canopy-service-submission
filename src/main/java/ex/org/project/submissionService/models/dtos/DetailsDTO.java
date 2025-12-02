@@ -10,7 +10,6 @@ import java.util.List;
 public class DetailsDTO {
     private Integer submissionId;
     private String studyName;
-    private String phs;
     private String centerRep;
     private String center;
     private List<BundlesDTO> bundles;

@@ -485,8 +485,7 @@ public class DataFileService {
 
 		// Map StudyPropertyValue to StudiesDTO
 		StudiesDTO studiesDto = studiesMapper.toDTO(studyName);
-        String phs = dataSubmission.getStudy().getPhs();
-        studiesDto.setCenter("(" + phs + ") " + studiesDto.getCenter());
+        studiesDto.setCenter("(" + studyId + ") " + studiesDto.getCenter());
 
 		// Create and return the UpdateDTO with the mapped values
 		return new UploadFilesDTO(s3FileDtos, studiesDto);

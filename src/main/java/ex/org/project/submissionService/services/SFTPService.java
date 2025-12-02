@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,15 +132,15 @@ public class SFTPService {
         HashSet<Integer> sftpSubmissions = uploadFilesSFTP(zipfile, bucket, region, sftpUploadInfo);
         //delete sftp package after successful upload
         awsStorageService.deleteSFTPPackageFromS3(zipfile, bucket, region);
-        List<String> phsUploads = viewStudyRepository.findPhsBySubmissionIds(sftpSubmissions);
-        sftpUploadInfo.setStudies(phsUploads);
+        List<String> studiesUploads = viewStudyRepository.findStudyIdBySubmissionIds(sftpSubmissions);
+        sftpUploadInfo.setStudies(studiesUploads);
         if (sftpSubmissions == null || sftpSubmissions.isEmpty()) {
             log.info("No valid submissions were able to be uploaded via sftp.");
             return false;
         }
         Map<String, String> props = new HashMap<>();
-        String phsNumbers = String.join(";", sftpUploadInfo.getStudies());
-        props.put("phsNumbers", phsNumbers);
+        String studyIds = String.join(";", sftpUploadInfo.getStudies());
+        props.put("studyIds", studyIds);
          emailRequestService.sendSftpEmail(SftpEmailType.SFTP_PROCESSED, sftpUploadInfo.getUser(), props);
         //trigger default bundling for each submission
         try {

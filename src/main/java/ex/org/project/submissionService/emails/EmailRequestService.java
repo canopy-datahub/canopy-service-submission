@@ -42,7 +42,7 @@ public class EmailRequestService {
         List<String> cc = new ArrayList<>();
         cc.add(supportEmailAddress);
         Map<String, String> props = new HashMap<>();
-        props.put("phs", study.getPhs());
+        props.put("studyId", String.valueOf(study.getStudyId()));
         props.put("studyName", study.getStudyName());
 
         switch(requestType) {
@@ -114,7 +114,7 @@ public class EmailRequestService {
         cc.add(supportEmailAddress);
         cc.addAll(emailAddressService.getCuratorEmailAddresses());
         Map<String, String> props = new HashMap<>();
-        props.put("phs", study.getPhs());
+        props.put("studyId", String.valueOf(study.getStudyId()));
         props.put("studyName", study.getStudyName());
         props.putAll(additionalProps);
 

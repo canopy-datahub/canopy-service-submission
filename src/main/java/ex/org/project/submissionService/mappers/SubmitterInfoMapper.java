@@ -27,6 +27,6 @@ public interface SubmitterInfoMapper {
 
 	@Named("prependPhs")
 	default String prependPhs(ViewStudy study) {
-		return String.format("(%s) %s", study.getPhs(), study.getStudyName());
+		return String.format("(%s) %s", study.getStudyId(), study.getStudyName());
 	}
 }
