@@ -38,10 +38,10 @@ public class StudyRegistrationController {
         Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
 
         Map<String, Integer> response = studyRegistrationService.registerNewStudy(studyRegistrationDTO, "Curator", userId, shouldSubmit);
-//        if(shouldSubmit){
-//            //refresh open search docs so study explorer now includes new study after updates are complete
-//            studyRegistrationService.triggerOpenSearchRefresh();
-//        }
+        if(shouldSubmit){
+            //refresh open search docs so study explorer now includes new study after updates are complete
+            studyRegistrationService.triggerOpenSearchRefresh();
+        }
       return new ResponseEntity<>(response, HttpStatus.CREATED);
 
     }
@@ -68,10 +68,10 @@ public class StudyRegistrationController {
         Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
         //TODO: track edits
         String response = studyRegistrationService.editStudyPropertyValues(studyRegistrationDTO, "Curator", shouldSubmit, userId);
-//        if(shouldSubmit){
-//            //refresh open search docs so study explorer now includes new study after updates are complete
-//            studyRegistrationService.triggerOpenSearchRefresh();
-//        }
+        if(shouldSubmit){
+            //refresh open search docs so study explorer now includes new study after updates are complete
+            studyRegistrationService.triggerOpenSearchRefresh();
+        }
         return ResponseEntity.ok(response);
     }
 

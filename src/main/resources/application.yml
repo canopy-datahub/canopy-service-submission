@@ -11,7 +11,7 @@ spring:
     open-in-view: false
 
 server:
-  port: 8083
+  port: 8080
   # request size bigger because headers
   max-file-size-MB: 1024
   max-request-size-MB: 1025
@@ -93,7 +93,7 @@ logging:
 
 spring:
   config:
-    # import: aws-secretsmanager:application_dev
+    import: aws-secretsmanager:application_dev
     activate:
       on-profile: dev
   jpa:
@@ -120,7 +120,7 @@ logging:
           HttpEntityMethodProcessor: warn
 
   pattern:
-    console: "[SUBMISSION] [TEST] %d{yyyy-MM-dd HH:mm:ss.SSS} [%5p] --- [%15.15t] %-40.40logger{1.} :: %m%n%wEx"
+    console: "[SUBMISSION] [DEV] %d{yyyy-MM-dd HH:mm:ss.SSS} [%5p] --- [%15.15t] %-40.40logger{1.} :: %m%n%wEx"
 
 ---
 # TEST
