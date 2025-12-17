@@ -59,13 +59,14 @@ public class FileApprovalService {
     private final StorageService storageService;
     private final DataSubmissionMapper dataSubmissionMapper;
     private final DataFileMapper dataFileMapper;
-	private final ViewStudyRepository viewStudyRepository;
-	private final S3TransferManager transferManager;
-	private final EmailRequestService emailRequestService;
-	private final SubmissionByCuratorMapper submissionByCuratorMapper;
-	private final UsersRepository usersRepository;
-	private final DownloadService downloadService;
-	private final StudyPropertyValueRepository studyPropertyValueRepository;
+    private final ViewStudyRepository viewStudyRepository;
+    private final S3TransferManager transferManager;
+    private final EmailRequestService emailRequestService;
+    private final SubmissionByCuratorMapper submissionByCuratorMapper;
+    private final UsersRepository usersRepository;
+    private final DownloadService downloadService;
+    private final StudyPropertyValueRepository studyPropertyValueRepository;
+    private final StudyRegistrationService studyRegistrationService;
 
 	@Value("${s3.download-directory}")
 	private String workingDirectory;
@@ -279,6 +280,8 @@ public class FileApprovalService {
 		dataFileRepository.saveAll(approvedFiles);
 		if(!approvedFiles.isEmpty()){
 			setHasDataFilesFlag(submission.getStudyId());
+      //also refresh open search docs so study explorer now includes new variables
+      studyRegistrationService.triggerOpenSearchRefresh();
 		}
 		String rejectionReason = submissionApprovalDTO.getFileRejectionReason() == null ? "" : submissionApprovalDTO.getFileRejectionReason();
 		Map<String, String> props = Map.of("rejectedFiles", rejectedFileNames,
