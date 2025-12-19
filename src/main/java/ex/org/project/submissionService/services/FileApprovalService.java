@@ -236,25 +236,26 @@ public class FileApprovalService {
      */
     @Transactional
     public boolean processSubmission(SubmissionApprovalDTO submissionApprovalDTO) {
-
+      System.out.println("process submission method is calling");
         Integer submissionId = submissionApprovalDTO.getSubmissionDetails().getSubmissionId();
         DataSubmission submission = dataSubmissionRepository.findById(submissionId)
                 .orElseThrow(() -> new SubmissionIdInvalidException("Submission Id " + submissionId + " not found"));
         Set<DataFile> approvedFiles = new HashSet<>();
         Set<DataFile> rejectedFiles = new HashSet<>();
 
-		submissionApprovalDTO.getSubmissionDetails().getBundles().forEach(bundle -> {
+		  submissionApprovalDTO.getSubmissionDetails().getBundles().forEach(bundle -> {
             Integer dataFileId = bundle.getId();
             String decision = bundle.getReviewDecision();
             if (decision == null) {
                 throw new BadDataException("Invalid decision parameter: null");
             }
+            log.info("Decision: {}", decision.toUpperCase());
             switch (decision.toUpperCase()) {
                 case "APPROVED" -> approvedFiles.addAll(approved(dataFileId, submission.getStudyId()));
                 case "REJECTED" -> rejectedFiles.addAll(rejected(dataFileId));
                 default -> throw new BadDataException("Invalid decision parameter: \"" + decision + "\"");
             }
-		});
+		  });
 
 		verifyFilesWereProcessed(approvedFiles, rejectedFiles);
 		setApprovedStatus(approvedFiles);
@@ -278,11 +279,7 @@ public class FileApprovalService {
         submission.setStatusId(submissionStatus.getId());
         dataSubmissionRepository.save(submission);
 		dataFileRepository.saveAll(approvedFiles);
-		if(!approvedFiles.isEmpty()){
-			setHasDataFilesFlag(submission.getStudyId());
-      //also refresh open search docs so study explorer now includes new variables
-      studyRegistrationService.triggerOpenSearchRefresh();
-		}
+
 		String rejectionReason = submissionApprovalDTO.getFileRejectionReason() == null ? "" : submissionApprovalDTO.getFileRejectionReason();
 		Map<String, String> props = Map.of("rejectedFiles", rejectedFileNames,
                                            "rejectionReason", rejectionReason,
@@ -297,8 +294,17 @@ public class FileApprovalService {
 							}
 						}
 				);
-        return true;
-    }
+
+      if(!approvedFiles.isEmpty()){
+        setHasDataFilesFlag(submission.getStudyId());
+        //also refresh open search docs so study explorer now includes new variables
+        System.out.println("Triggering open search refresh");
+        studyRegistrationService.triggerOpenSearchRefresh();
+        System.out.println("Open search refresh complete");
+      }
+
+      return true;
+  }
 
 	private String getApprovedFileNames(Set<DataFile> approvedFiles) {
 		if(approvedFiles.isEmpty()){
