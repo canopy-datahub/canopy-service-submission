@@ -53,7 +53,7 @@ public class DataFileService {
     private final StudyPropertyValueRepository studyPropertyValueRepository;
     private final StudyRepository studyRepository;
     private final UsersRepository usersRepository;
-    private final DataFileVariableRepository dataFileVariableRepository;
+    private final VariableRepository variableRepository;
     private final SASFileRepository sasFileRepository;
     private final SASFileDownloadRepository sasFileDownloadRepository;
     private final DataFileDownloadRepository dataFileDownloadRepository;
@@ -165,10 +165,11 @@ public class DataFileService {
             dataFileRepository.saveAll(foreignKeyMetaFiles);
         }
 
-        List<DataFileVariable> foreignKeyDataFileVariables = dataFileVariableRepository.findByDataFileId(fileId);
-        if(!foreignKeyDataFileVariables.isEmpty()){
-            dataFileVariableRepository.deleteAll(foreignKeyDataFileVariables);
-            log.info("Deleted data file variables records for data file id: " + fileId);
+        // Delete variables associated with this data file
+        List<Variable> foreignKeyVariables = variableRepository.findByFileId(fileId);
+        if(!foreignKeyVariables.isEmpty()){
+            variableRepository.deleteAll(foreignKeyVariables);
+            log.info("Deleted {} variable records for data file id: {}", foreignKeyVariables.size(), fileId);
         }
         //check if any download_data table has reference to current file as a file downloaded
         //if so, delete reference

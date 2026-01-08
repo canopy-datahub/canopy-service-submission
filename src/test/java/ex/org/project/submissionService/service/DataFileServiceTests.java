@@ -63,7 +63,7 @@ class DataFileServiceTests {
     private StudyRepository studyRepository = mock(StudyRepository.class);
     private StudyPropertyValueRepository studyPropertyValueRepository = mock(StudyPropertyValueRepository.class);
 
-    private DataFileVariableRepository dataFileVariableRepository = mock(DataFileVariableRepository.class);
+    private VariableRepository variableRepository = mock(VariableRepository.class);
 
     private SASFileRepository sasFileRepository = mock(SASFileRepository.class);
     private SASFileDownloadRepository sasFileDownloadRepository = mock(SASFileDownloadRepository.class);
@@ -83,7 +83,7 @@ class DataFileServiceTests {
             studyPropertyValueRepository,
             studyRepository,
             usersRepository,
-            dataFileVariableRepository,
+            variableRepository,
             sasFileRepository,
             sasFileDownloadRepository,
             dataFileDownloadRepository,
@@ -202,21 +202,21 @@ class DataFileServiceTests {
         List<DataFile> mockDataFileList = new ArrayList<>();
         mockDataFileList.add(mockForeignDataFile);
 
-        List<DataFileVariable> variables = getMockDataFileVariables(mockDataFile.getId());
+        List<Variable> variables = getMockVariables(mockDataFile.getId());
 
         when(dfRepository.findById(1)).thenReturn(Optional.of(mockDataFile));
         when(dfRepository.findDataFilesByDictionaryFileId(1))
                 .thenReturn(mockDataFileList);
         when(awsStorageService.deleteFileFromS3(mockS3File)).thenReturn(true);
-        when(dataFileVariableRepository.findByDataFileId(1)).thenReturn(variables);
+        when(variableRepository.findByFileId(1)).thenReturn(variables);
 
         boolean result = dataFileService.deleteDataFile(1);
 
         assertEquals(true, result);
         assertEquals("junit/test.txt", mockS3File.getFileKey());
         assertEquals(null, mockForeignDataFile.getDictionaryFileId());
-        verify(dataFileVariableRepository, times(1)).findByDataFileId(mockDataFile.getId());
-        verify(dataFileVariableRepository, times(1)).deleteAll(anyList());
+        verify(variableRepository, times(1)).findByFileId(mockDataFile.getId());
+        verify(variableRepository, times(1)).deleteAll(anyList());
     }
 
     @Test
@@ -365,29 +365,32 @@ class DataFileServiceTests {
         return dfs;
     }
 
-    private List<DataFileVariable> getMockDataFileVariables(Integer fileId){
-        List<DataFileVariable> dfVariables= new ArrayList<>(3);
+    private List<Variable> getMockVariables(Integer fileId){
+        List<Variable> variables = new ArrayList<>(3);
 
-        DataFileVariable dfVariable1 = new DataFileVariable();
-        dfVariable1.setId(1);
-        dfVariable1.setDataFileId(fileId);
-        dfVariable1.setVariable("nih_record_id");
+        DataFile mockFile = new DataFile();
+        mockFile.setId(fileId);
 
-        DataFileVariable dfVariable2 = new DataFileVariable();
-        dfVariable2.setId(2);
-        dfVariable2.setDataFileId(fileId);
-        dfVariable2.setVariable("nih_record_id");
+        Variable variable1 = new Variable();
+        variable1.setId(1);
+        variable1.setFile(mockFile);
+        variable1.setName("nih_record_id");
 
-        DataFileVariable dfVariable3 = new DataFileVariable();
-        dfVariable3.setId(3);
-        dfVariable3.setDataFileId(fileId);
-        dfVariable3.setVariable("nih_record_id");
+        Variable variable2 = new Variable();
+        variable2.setId(2);
+        variable2.setFile(mockFile);
+        variable2.setName("study_id");
 
-        dfVariables.add(dfVariable1);
-        dfVariables.add(dfVariable2);
-        dfVariables.add(dfVariable3);
+        Variable variable3 = new Variable();
+        variable3.setId(3);
+        variable3.setFile(mockFile);
+        variable3.setName("participant_id");
 
-        return dfVariables;
+        variables.add(variable1);
+        variables.add(variable2);
+        variables.add(variable3);
+
+        return variables;
     }
 
     @Test
