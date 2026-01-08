@@ -113,9 +113,10 @@ public class StudyRegistrationController {
         //if it's flagged to delete study, delete the study and its metadata.
         if(deleteStudy.isPresent() && deleteStudy.get()){
             studyRegistrationService.deleteStudiesByCurator(studyId);
-            studyRegistrationService.triggerOpenSearchRefresh();
             log.info("Successfully deleted study id: {}", studyId);
         }
+        //trigger opensearch refresh no matter deleteStudy or not, because data files/variables will be deleted even study is not
+        studyRegistrationService.triggerOpenSearchRefresh();
         return ResponseEntity.ok("Successfully deleted study and/or files for study id: " + studyId);
     }
 
