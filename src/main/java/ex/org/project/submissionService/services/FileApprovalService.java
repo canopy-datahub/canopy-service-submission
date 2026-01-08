@@ -39,9 +39,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import ex.org.project.submissionService.events.FilesApprovedEvent;
 import ex.org.project.submissionService.mappers.DataFileMapper;
 import ex.org.project.submissionService.mappers.DataSubmissionMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
@@ -66,7 +68,7 @@ public class FileApprovalService {
     private final UsersRepository usersRepository;
     private final DownloadService downloadService;
     private final StudyPropertyValueRepository studyPropertyValueRepository;
-    private final StudyRegistrationService studyRegistrationService;
+    private final ApplicationEventPublisher eventPublisher;
 
 	@Value("${s3.download-directory}")
 	private String workingDirectory;
@@ -297,10 +299,10 @@ public class FileApprovalService {
 
       if(!approvedFiles.isEmpty()){
         setHasDataFilesFlag(submission.getStudyId());
-        //also refresh open search docs so study explorer now includes new variables
-        System.out.println("Triggering open search refresh");
-        studyRegistrationService.triggerOpenSearchRefresh();
-        System.out.println("Open search refresh complete");
+        
+        // Publish event to trigger OpenSearch refresh after transaction commits
+        eventPublisher.publishEvent(new FilesApprovedEvent(this, submission.getStudyId(), approvedFiles.size()));
+        log.debug("Published FilesApprovedEvent for studyId={}, fileCount={}", submission.getStudyId(), approvedFiles.size());
       }
 
       return true;
