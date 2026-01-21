@@ -1,7 +1,7 @@
 package ex.org.project.submissionService.controllers;
 
 import ex.org.project.submissionService.auth.AccessRole;
-import ex.org.project.submissionService.auth.UserAuthService;
+import ex.org.project.submissionService.auth.core.KeycloakAuthenticationService;
 import ex.org.project.submissionService.exceptions.custom.BadDataException;
 import ex.org.project.submissionService.models.dtos.S3FileDTO;
 import ex.org.project.submissionService.models.dtos.UploadFilesDTO;
@@ -17,6 +17,8 @@ import java.util.NoSuchElementException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -30,36 +32,36 @@ public class UploadController {
 	private final BundleService bundleService;
 	private final DataFileService datafileService;
 	private final SFTPService sftpService;
-	private final UserAuthService authService;
+  private final KeycloakAuthenticationService authenticationService;
 
 
 	@GetMapping("/getFiles")
-	public ResponseEntity<?> getFiles(@CookieValue(value="chocolateChip", required = false) String sessionId,
+	public ResponseEntity<?> getFiles(@AuthenticationPrincipal Jwt jwt,
 									  @RequestParam("submissionId") Integer submissionId) {
-		authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
+		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
 		//TODO: clean up error handling
 		try {
 			UploadFilesDTO uploadedFiles = datafileService.getUploadedFiles(submissionId);
 			return ResponseEntity.ok(uploadedFiles);
 		} catch (NoSuchElementException e) {
 			log.error("no such element exception", e);
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); 
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
 		}
 	}
 
 	@PostMapping("/multiple")
-	public ResponseEntity<List<S3FileDTO>> uploadFiles(@CookieValue(value="chocolateChip", required = false) String sessionId,
+	public ResponseEntity<List<S3FileDTO>> uploadFiles(@AuthenticationPrincipal Jwt jwt,
 													   @RequestParam("files") List<MultipartFile> files,
 													   @RequestParam("submissionId") Integer submissionId) {
-		Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
+		Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
 		List<S3FileDTO> s3FileDTOS = datafileService.createDataFiles(files, submissionId, userId);
 		return ResponseEntity.ok().body(s3FileDTOS);
 	}
 
 	@PostMapping("/createBundles")
-	public ResponseEntity<String> createBundles(@CookieValue(value="chocolateChip", required = false) String sessionId,
+	public ResponseEntity<String> createBundles(@AuthenticationPrincipal Jwt jwt,
 												@RequestParam("submissionId") Integer submissionId) {
-		Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
+		Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
 		//TODO: clean up error handling
 			boolean bundlesCreated = bundleService.createBundles(submissionId);
 			String stepDescription = "Upload Files";

@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "lkup_role")
-class AuthRole {
+public class AuthRole {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

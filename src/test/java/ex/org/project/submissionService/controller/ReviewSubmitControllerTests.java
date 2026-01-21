@@ -2,18 +2,15 @@ package ex.org.project.submissionService.controller;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 import java.util.NoSuchElementException;
 
-import ex.org.project.submissionService.auth.UserAuthService;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -29,9 +26,6 @@ public class ReviewSubmitControllerTests {
     @Mock
     private BundleService bundleService;
 
-    @Mock
-    private UserAuthService authService;
-
     @InjectMocks
     private ReviewSubmitController submitController;
 
@@ -43,8 +37,8 @@ public class ReviewSubmitControllerTests {
     public void testSubmit_SuccessfulSubmission() throws BadDataException {
         Integer submissionId = 1;
         String stepDescription = "Submitted";
-        String sessionId = "session123";
-        ResponseEntity<String> response = submitController.submit(sessionId, submissionId);
+        Jwt jwt = mock(Jwt.class);
+        ResponseEntity<String> response = submitController.submit(jwt, submissionId);
         doNothing().when(bundleService).updateStepId(submissionId, stepDescription, 0);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNull(response.getBody());
@@ -55,9 +49,9 @@ public class ReviewSubmitControllerTests {
     public void testSubmit_BadDataException() throws BadDataException {
         Integer submissionId = 1;
         String errorMessage = "Invalid data";
-        String sessionId = "session123";
+        Jwt jwt = mock(Jwt.class);
         doThrow(new NoSuchElementException(errorMessage)).when(bundleService).updateStepId(submissionId, "Submitted", 0);
-        ResponseEntity<String> response = submitController.submit(sessionId, submissionId);
+        ResponseEntity<String> response = submitController.submit(jwt, submissionId);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(errorMessage, response.getBody());
         verify(submitService, times(1)).submit(submissionId);

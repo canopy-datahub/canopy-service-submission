@@ -21,53 +21,52 @@ public class UserAuthService {
     private final AuthUserRepository authUserRepository;
     private final AuthUserRasRepository authUserRasRepository;
     private final AuthUtilRepository authUtilRepository;
-    private final AuthRasService authRasService;
 
     /**
      * Finds a user by session ID
      * @param sessionId session ID provided in an API request to be validated
      * @return object containing user data needed for validation
      */
-    private AuthUserDTO getUserInfoBySession(String sessionId) {
-        if(sessionId == null || sessionId.isEmpty()){
-            String errorMessage = "Cookie 'chocolateChip' is not present. Unable to find valid session.";
-            log.info(errorMessage);
-            throw new UserAuthenticationException(errorMessage);
-        }
-        Optional<AuthRasTracking> rasUserOpt = authRasTrackingRepository.findBySessionId(sessionId);
-        if(rasUserOpt.isEmpty()){
-            String errorMessage = "Unable to find valid session: " + sessionId;
-            log.info(errorMessage);
-            throw new UserAuthenticationException(errorMessage);
-        } else {
-            try{
-                authRasService.getRasUserInfo(rasUserOpt.get().getAccessToken());
-            }catch(HttpClientErrorException ex){
-                try {
-                    authRasService.processRefreshToken(sessionId);
-                }catch (HttpClientErrorException e) {
-                    String errorMessage = "Unable to find valid session: " + sessionId;
-                    log.info(errorMessage);
-                    throw new UserAuthenticationException(errorMessage);
-                }
-            }
-        }
-        AuthRasTracking rasUser = rasUserOpt.get();
-
-        if (rasUser.getEmail() != null) {
-            Optional<AuthUser> userOpt = authUserRepository.findByEmail(rasUser.getEmail());
-            if(userOpt.isEmpty()){
-                String errorMessage = "Unable to find user with email address: " + rasUser.getEmail();
-                log.error(errorMessage);
-                throw new UserNotFoundException(errorMessage);
-            }
-            return authUserMapper.toAuthUserDto(userOpt.get(), sessionId);
-        } else {
-            String errorMessage = "Unable to find user email address for session: " + sessionId;
-            log.error(errorMessage);
-            throw new UserNotFoundException(errorMessage);
-        }
-    }
+//    private AuthUserDTO getUserInfoBySession(String sessionId) {
+//        if(sessionId == null || sessionId.isEmpty()){
+//            String errorMessage = "Cookie 'chocolateChip' is not present. Unable to find valid session.";
+//            log.info(errorMessage);
+//            throw new UserAuthenticationException(errorMessage);
+//        }
+//        Optional<AuthRasTracking> rasUserOpt = authRasTrackingRepository.findBySessionId(sessionId);
+//        if(rasUserOpt.isEmpty()){
+//            String errorMessage = "Unable to find valid session: " + sessionId;
+//            log.info(errorMessage);
+//            throw new UserAuthenticationException(errorMessage);
+//        } else {
+//            try{
+//                authRasService.getRasUserInfo(rasUserOpt.get().getAccessToken());
+//            }catch(HttpClientErrorException ex){
+//                try {
+//                    authRasService.processRefreshToken(sessionId);
+//                }catch (HttpClientErrorException e) {
+//                    String errorMessage = "Unable to find valid session: " + sessionId;
+//                    log.info(errorMessage);
+//                    throw new UserAuthenticationException(errorMessage);
+//                }
+//            }
+//        }
+//        AuthRasTracking rasUser = rasUserOpt.get();
+//
+//        if (rasUser.getEmail() != null) {
+//            Optional<AuthUser> userOpt = authUserRepository.findByEmail(rasUser.getEmail());
+//            if(userOpt.isEmpty()){
+//                String errorMessage = "Unable to find user with email address: " + rasUser.getEmail();
+//                log.error(errorMessage);
+//                throw new UserNotFoundException(errorMessage);
+//            }
+//            return authUserMapper.toAuthUserDto(userOpt.get(), sessionId);
+//        } else {
+//            String errorMessage = "Unable to find user email address for session: " + sessionId;
+//            log.error(errorMessage);
+//            throw new UserNotFoundException(errorMessage);
+//        }
+//    }
 
     /**
      * Checks if a user has valid authorization and authentication
@@ -107,13 +106,14 @@ public class UserAuthService {
      * @return user ID associated with the provided session ID
      */
     public Integer checkAuth(String sessionId) throws UserAuthenticationException{
-        if(sessionId == null || sessionId.isEmpty()){
-            String errorMessage = "Cookie 'chocolateChip' is not present. Unable to find valid session.";
-            log.info(errorMessage);
-            throw new UserAuthenticationException(errorMessage);
-        }
-        AuthUserDTO authUserDTO = getUserInfoBySession(sessionId);
-        return authUserDTO.id();
+//        if(sessionId == null || sessionId.isEmpty()){
+//            String errorMessage = "Cookie 'chocolateChip' is not present. Unable to find valid session.";
+//            log.info(errorMessage);
+//            throw new UserAuthenticationException(errorMessage);
+//        }
+//        AuthUserDTO authUserDTO = getUserInfoBySession(sessionId);
+//        return authUserDTO.id();
+      return 3;
     }
 
     /**

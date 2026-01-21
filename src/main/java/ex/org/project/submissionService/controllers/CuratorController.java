@@ -4,11 +4,13 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import ex.org.project.submissionService.auth.AccessRole;
-import ex.org.project.submissionService.auth.UserAuthService;
+import ex.org.project.submissionService.auth.core.KeycloakAuthenticationService;
 import ex.org.project.submissionService.models.dtos.DetailsDTO;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import ex.org.project.submissionService.models.dtos.DataSubmissionDTO;
@@ -23,29 +25,29 @@ import lombok.RequiredArgsConstructor;
 public class CuratorController {
 
 	private final FileApprovalService approvalService;
-	private final UserAuthService authService;
+  private final KeycloakAuthenticationService authenticationService;
 
-	@GetMapping("/getSubmissions")
-	public ResponseEntity<?> getSubmittedSubmissions(@CookieValue(value="chocolateChip", required = false) String sessionId,
+  @GetMapping("/getSubmissions")
+	public ResponseEntity<?> getSubmittedSubmissions(@AuthenticationPrincipal Jwt jwt,
 													 @RequestParam("status") String status) {
-		authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
+		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
 		//TODO: refactor errors
 		List<DataSubmissionDTO> submissions = approvalService.getSubmittedSubmissions(status);
 		return ResponseEntity.ok(submissions);
 	}
 
 	@GetMapping("/getFilesBySubm")
-	public ResponseEntity<DetailsDTO> getFiles(@CookieValue(value="chocolateChip", required = false) String sessionId,
+	public ResponseEntity<DetailsDTO> getFiles(@AuthenticationPrincipal Jwt jwt,
 											   @RequestParam("submissionId") Integer submissionId) {
 		System.out.println("Raw submissionId parameter: " + submissionId);
-		authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
+		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
 		return ResponseEntity.ok(approvalService.getSubmissionBundleInfo(submissionId));
 	}
 
 	@PostMapping("/processFiles")
-	public ResponseEntity<String> processFiles(@CookieValue(value="chocolateChip", required = false) String sessionId,
+	public ResponseEntity<String> processFiles(@AuthenticationPrincipal Jwt jwt,
 											   @RequestBody SubmissionApprovalDTO dto) {
-		authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
+		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
 		//TODO: refactor errors
 		try {
 			approvalService.processSubmission(dto);
@@ -58,9 +60,9 @@ public class CuratorController {
 
 
 	@GetMapping("/all-submission-files")
-	public ResponseEntity<Object> downloadAllSubmissionFiles(@CookieValue(value="chocolateChip", required = false) String sessionId,
+	public ResponseEntity<Object> downloadAllSubmissionFiles(@AuthenticationPrincipal Jwt jwt,
 															 @RequestParam Integer submissionId){
-		authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
+		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
 		return approvalService.getAllSubmissionFiles(submissionId);
 	}
 }
