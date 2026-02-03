@@ -19,7 +19,6 @@ server:
 s3-bucket:
   in-review: ${InReviewS3Bucket}
   approved: ${ApprovedS3Bucket}
-  mta-forms: ${MtaFormBucket}
   sftp-ingest: ${SFTPIngestBucket}
   upload-portal: ${UploadPortalBucket}
 

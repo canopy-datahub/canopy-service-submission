@@ -3,7 +3,6 @@ package ex.org.project.submissionService.services;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ex.org.project.submissionService.config.S3BucketConfig;
-import ex.org.project.submissionService.exceptions.custom.PdfParsingException;
 import ex.org.project.submissionService.models.S3File;
 import ex.org.project.submissionService.models.S3FileType;
 import ex.org.project.submissionService.models.Study;
@@ -49,7 +48,6 @@ public class AwsStorageService implements StorageService {
     private final S3TransferManager transferManager;
     private final String s3InitialUploadBucket;
     private final String s3ApprovedBucket;
-    private final String mtaFormBucket;
     private final String uploadPortalBucket;
 
 
@@ -68,7 +66,6 @@ public class AwsStorageService implements StorageService {
         this.transferManager = transferManager;
         this.s3InitialUploadBucket = s3BucketConfig.getInReview();
         this.s3ApprovedBucket = s3BucketConfig.getApproved();
-        this.mtaFormBucket = s3BucketConfig.getMtaForms();
         this.uploadPortalBucket = s3BucketConfig.getUploadPortal();
     }
 
@@ -222,46 +219,6 @@ public class AwsStorageService implements StorageService {
         return upload.completionFuture().join();
     }
 
-
-    /**
-     * Upload MTA form pdf to S3
-     * @param file file to be uploaded
-     * @param studyUuid UUID of the study for file path purposes
-     * @return the s3 path where the file is stored
-     */
-    public String uploadMtaForm(MultipartFile file, String studyUuid){
-        String fileKey = studyUuid + "/" + file.getOriginalFilename();
-        Optional<PutObjectResponse> response = checkSuccess(uploadMtaFormToS3(file, fileKey));
-        if(response.isEmpty()){
-            throw new PdfParsingException("Error uploading MTA form to S3");
-        }
-        PutObjectResponse completedResponse = response.get();
-        String filePath = mtaFormBucket + "/" + fileKey;
-        return filePath;
-    }
-
-    /**
-     * Creates and makes request to upload MTA form to s3
-     * @param file file to be uploaded
-     * @param fileKey what path the file should be uploaded to inside the mta form bucket
-     * @return optional with upload response if successful, empty optional otherwise
-     */
-    private Optional<Upload> uploadMtaFormToS3(MultipartFile file, String fileKey){
-        try {
-            UploadRequest uploadRequest = UploadRequest.builder()
-                    .putObjectRequest(
-                            req -> req.bucket(mtaFormBucket)
-                                    .key(fileKey)
-                                    .checksumAlgorithm(ChecksumAlgorithm.SHA256)
-                    )
-                    .requestBody(AsyncRequestBody.fromBytes(file.getBytes()))
-                    .build();
-            return Optional.of(transferManager.upload(uploadRequest));
-        } catch (IOException e){
-            log.error("Error reading from MultipartFile.");
-            return Optional.empty();
-        }
-    }
 
     /**
      * Uploads a file to S3 based on metadata stored in an S3File object

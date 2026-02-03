@@ -36,8 +36,6 @@ There are quite a few environment variables that need to be set:
   * Name of S3 bucket to hold files waiting for review and approval
 * ApprovedS3Bucket
   * Name of S3 bucket to hold approved files
-* MtaFormBucket
-  * Name of s3 bucket to store study reg MTA form PDFs
 * SFTPIngestBucket
   * Name of S3 bucket used to store sftp files before being processed into the Data Hub system
 * PiiQueue

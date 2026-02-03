@@ -15,7 +15,6 @@ public class S3BucketConfig {
 
     private String inReview;
     private String approved;
-    private String mtaForms;
     private String sftpIngest;
     private String uploadPortal;
 
