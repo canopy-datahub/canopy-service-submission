@@ -31,8 +31,6 @@ radx:
   emailQueue: ${EmailQueue}
   stakeholder-emails-study-reg: ${StakeholderEmailsStudyReg}
   host-url: ${HostURL}
-  accountNumber: ${accountId}
-  stepFnMachineArn: ${StepFunctionMachineArn}
   opensearch-lambda: ${OpensearchRefreshLambda}
 
 management:

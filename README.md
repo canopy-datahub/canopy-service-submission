@@ -48,11 +48,6 @@ There are quite a few environment variables that need to be set:
   * A comma separated list of any additional study reg stakeholders, to be emailed on study upload and approval
 * HostURL
   * hostname for the frontend datahub system
-* accountId
-  * Macie account Id
-* StepFunctionMachineArn
-  * step function ARN used for Macie scanning
-
 In a specific instance, the only environment variable that needs to be set is:
 * spring_profiles_active
   * This should be set to '{environment}'
