@@ -247,7 +247,9 @@ public class StudyRegistrationService {
             case DATA_SUBMITTER -> {
                 if (shouldSubmit) {
                     setStudyStatus(study, Constants.STATUS_IN_REVIEW);
-                     emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_DCC_METADATA);
+                    if (!isNewStudy) {
+                        emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_DCC_METADATA);
+                    }
                 } else if (isNewStudy) {
                     setStudyStatus(study, Constants.STATUS_DRAFT_STUDY);
                 }
