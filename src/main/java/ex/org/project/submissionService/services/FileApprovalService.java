@@ -4,6 +4,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -279,6 +281,7 @@ public class FileApprovalService {
         LkupStatus submissionStatus = lkupStatusRepository.findByUsageAndName(Constants.USAGE_DATA_SUBMISSION, Constants.STATUS_COMPLETED)
 				.orElseThrow(()  -> new StatusNotFoundException(String.format("Invalid Data Submission Status: %s", Constants.STATUS_COMPLETED)));
         submission.setStatusId(submissionStatus.getId());
+        submission.setDateApproved(Timestamp.valueOf(LocalDateTime.now()));
         dataSubmissionRepository.save(submission);
 		dataFileRepository.saveAll(approvedFiles);
 
@@ -377,8 +380,10 @@ public class FileApprovalService {
 	private void setApprovedStatus(Set<DataFile> approvedFiles) {
 		LkupStatus approvedStatus = lkupStatusRepository.findByUsageAndName(Constants.USAGE_FILE, Constants.STATUS_APPROVED)
 				.orElseThrow(()  -> new StatusNotFoundException(String.format("Invalid Data File Status: %s", Constants.STATUS_APPROVED)));
+		LocalDateTime now = LocalDateTime.now();
 		for(DataFile file : approvedFiles) {
 			file.setStatus(approvedStatus);
+			file.setApprovalDate(now);
 		}
 	}
 

@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import java.time.LocalDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -92,6 +93,12 @@ public class DataFile {
 
     @Column(name="meta_validation")
     private Boolean metaValidationFailed;
+
+    @Column(name = "approval_date")
+    private LocalDateTime approvalDate;
+
+    @Column(name = "reject_date")
+    private LocalDateTime rejectDate;
     
     @Column(name="variable_count")
     private Integer variablesCount;
