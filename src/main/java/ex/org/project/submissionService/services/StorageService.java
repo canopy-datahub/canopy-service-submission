@@ -14,8 +14,6 @@ public interface StorageService {
 
     boolean moveToApproved(List<S3File> s3Files);
 
-    String uploadMtaForm(MultipartFile file, String studyUuid);
-
     boolean deleteStudyFromS3(Study study);
 
 }

@@ -17,7 +17,7 @@ spring:
           jwk-set-uri: ${DATAHUB_KEYCLOAK_JWK_SET_URI}
 
 server:
-  port: 8083
+  port: 8080
   # request size bigger because headers
   max-file-size-MB: 1024
   max-request-size-MB: 1025
@@ -25,7 +25,6 @@ server:
 s3-bucket:
   in-review: ${InReviewS3Bucket}
   approved: ${ApprovedS3Bucket}
-  mta-forms: ${MtaFormBucket}
   sftp-ingest: ${SFTPIngestBucket}
   upload-portal: ${UploadPortalBucket}
 
@@ -38,8 +37,6 @@ radx:
   emailQueue: ${EmailQueue}
   stakeholder-emails-study-reg: ${StakeholderEmailsStudyReg}
   host-url: ${HostURL}
-  accountNumber: ${accountId}
-  stepFnMachineArn: ${StepFunctionMachineArn}
   opensearch-lambda: ${OpensearchRefreshLambda}
 
 management:
@@ -69,13 +66,6 @@ keycloak:
   realm: ${DATAHUB_KEYCLOAK_REALM}
   resource: ${DATAHUB_KEYCLOAK_CLIENT_ID}
 
-# RAS configuration
-# ras:
-#  url: ${rasurl}
-#  client:
-#    id: ${rasclientid}
-#    secret: ${rasclientsecret}
-
 ---
 # LOCAL
 
@@ -103,7 +93,7 @@ logging:
 
 spring:
   config:
-#    import: aws-secretsmanager:application_dev
+    import: aws-secretsmanager:${AWS_SECRET_NAME}
     activate:
       on-profile: dev
   jpa:
@@ -137,7 +127,7 @@ logging:
 
 spring:
   config:
-    import: aws-secretsmanager:application_test
+    import: aws-secretsmanager:${AWS_SECRET_NAME}
     activate:
       on-profile: test
 
@@ -149,7 +139,7 @@ logging:
 
 spring:
   config:
-    import: aws-secretsmanager:application_prod
+    import: aws-secretsmanager:${AWS_SECRET_NAME}
     activate:
       on-profile: prod
 

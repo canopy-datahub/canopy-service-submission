@@ -17,7 +17,6 @@ import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,12 +48,6 @@ public class ValidationService {
 
     @Autowired
     private ValidatorFactory metadataValidatorFactory;
-
-    @Value("${radx.accountNumber}")
-    private String accountNumber;
-
-    @Value("${radx.stepFnMachineArn}")
-    private String machineArn;
 
     /**
      * getValidationResults returns a list of all validation results for the files that failed validation in a submission

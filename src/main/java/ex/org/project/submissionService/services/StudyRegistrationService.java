@@ -55,6 +55,8 @@ public class StudyRegistrationService {
     private final UserFileUploadRepository uploadRepository;
     private final LambdaClient awsLambdaClient;
 
+    private static final String CENTER_ENTITY_PROPERTY_NAME = "center";
+
     private final String CURATOR = "Curator";
     private final String DATA_SUBMITTER = "Center";
     private final Pattern valueIndexMatcher = Pattern.compile("(\\d+)");
@@ -70,6 +72,8 @@ public class StudyRegistrationService {
      */
     @Transactional
     public Map<String, Integer> registerNewStudy(StudyRegistrationDTO studyRegistrationDTO, String role, Integer userId, Boolean shouldSubmit) {
+        log.debug("registerNewStudy called — role: {}, userId: {}, shouldSubmit: {}, studyRegistrationDTO: {}",
+                role, userId, shouldSubmit, studyRegistrationDTO);
         Study study = createStudy(studyRegistrationDTO, userId);
 
         //have a new StudyRegistrationDTO instance that has the study id
@@ -112,9 +116,17 @@ public class StudyRegistrationService {
         study.setStatus(status);
         study.setCreatedAt(Timestamp.from(Instant.now()));
         study.setCreatedBy(userId);
-        //todo: need to change
-        Optional<LkupCenter> dccOpt = centerRepository.findByNameContainingIgnoreCase("RADx-UP");
-        LkupCenter dcc = dccOpt.get();
+
+        String centerName = studyRegistrationDTO.studyPropertyValues().stream()
+            .filter(spv -> spv.entityProperty() != null
+                    && CENTER_ENTITY_PROPERTY_NAME.equalsIgnoreCase(spv.entityProperty().name()))
+            .map(StudyPropertyValueDTO::value)
+            .findFirst()
+            .orElseThrow(() -> new BadDataException("Center value is required to register a new study"));
+
+        LkupCenter dcc = centerRepository.findByNameEqualsIgnoreCase(centerName)
+            .orElseThrow(() -> new BadDataException("No center found with name: " + centerName));
+
         study.setCenter(dcc);
         study = studyRepository.saveAndFlush(study);
         log.info("New study created: {}", study);
@@ -247,7 +259,9 @@ public class StudyRegistrationService {
             case DATA_SUBMITTER -> {
                 if (shouldSubmit) {
                     setStudyStatus(study, Constants.STATUS_IN_REVIEW);
-                     emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_DCC_METADATA);
+                    if (!isNewStudy) {
+                        emailRequestService.sendStudyRegEmail(study.getId(), StudyRegEmailType.NEW_STUDY_DCC_METADATA);
+                    }
                 } else if (isNewStudy) {
                     setStudyStatus(study, Constants.STATUS_DRAFT_STUDY);
                 }

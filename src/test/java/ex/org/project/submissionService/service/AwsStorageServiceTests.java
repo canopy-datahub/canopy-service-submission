@@ -58,7 +58,6 @@ public class AwsStorageServiceTests {
     private final StudyRepository studyRepository = mock(StudyRepository.class);
     private final String s3Bucket = "testBucket";
     private final String newS3Bucket = "newBucket";
-    private final String mtaFormBucket = "formBucket";
 
     @Captor
     ArgumentCaptor<UploadRequest> uploadRequestCaptor;
@@ -72,7 +71,6 @@ public class AwsStorageServiceTests {
         S3BucketConfig bucketConfig = new S3BucketConfig();
         bucketConfig.setInReview("testBucket");
         bucketConfig.setApproved("newBucket");
-        bucketConfig.setMtaForms("formBucket");
         return bucketConfig;
     }
 

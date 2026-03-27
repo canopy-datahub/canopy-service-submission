@@ -97,7 +97,7 @@ public class UserAuthService {
         // }
         // log.warn("User attempted access with invalid role authorization; Session: " + sessionId);
         // throw new UserAuthorizationException("User does not have the necessary role for access");
-        return 3;
+        return 4;
     }
 
     /**

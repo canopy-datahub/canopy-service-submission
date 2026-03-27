@@ -36,8 +36,6 @@ There are quite a few environment variables that need to be set:
   * Name of S3 bucket to hold files waiting for review and approval
 * ApprovedS3Bucket
   * Name of S3 bucket to hold approved files
-* MtaFormBucket
-  * Name of s3 bucket to store study reg MTA form PDFs
 * SFTPIngestBucket
   * Name of S3 bucket used to store sftp files before being processed into the Data Hub system
 * PiiQueue
@@ -50,11 +48,6 @@ There are quite a few environment variables that need to be set:
   * A comma separated list of any additional study reg stakeholders, to be emailed on study upload and approval
 * HostURL
   * hostname for the frontend datahub system
-* accountId
-  * Macie account Id
-* StepFunctionMachineArn
-  * step function ARN used for Macie scanning
-
 In a specific instance, the only environment variable that needs to be set is:
 * spring_profiles_active
   * This should be set to '{environment}'
