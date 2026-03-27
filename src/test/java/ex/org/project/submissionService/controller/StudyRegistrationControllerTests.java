@@ -1,7 +1,7 @@
 package ex.org.project.submissionService.controller;
 
 import ex.org.project.submissionService.auth.AccessRole;
-import ex.org.project.submissionService.auth.UserAuthService;
+import ex.org.project.submissionService.auth.core.KeycloakAuthenticationService;
 import ex.org.project.submissionService.controllers.StudyRegistrationController;
 import ex.org.project.submissionService.models.dtos.StudyRegistrationDTO;
 import ex.org.project.submissionService.models.dtos.UserStudyRegistrationDTO;
@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,7 +28,7 @@ public class StudyRegistrationControllerTests {
     private StudyRegistrationController studyRegistrationController;
 
     @Mock
-    private UserAuthService authService;
+    private KeycloakAuthenticationService authenticationService;
 
     @Mock
     private StudyRegistrationService studyRegistrationService;
@@ -39,17 +40,17 @@ public class StudyRegistrationControllerTests {
 
     @Test
     void testGetStudiesByDcc() {
-        String sessionId = "session123";
+        Jwt jwt = mock(Jwt.class);
         String status = "Pending DCC Input";
         Integer userId = 1;
         List<UserStudyRegistrationDTO> expectedStudies = Arrays.asList(new UserStudyRegistrationDTO(), new UserStudyRegistrationDTO());
 
-        when(authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER)))
+        when(authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER)))
                 .thenReturn(userId);
         when(studyRegistrationService.getUserStudiesByCenter(userId, status))
                 .thenReturn(expectedStudies);
 
-        ResponseEntity<?> response = studyRegistrationController.getStudiesByCenter(sessionId,status);
+        ResponseEntity<?> response = studyRegistrationController.getStudiesByCenter(jwt,status);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(expectedStudies, response.getBody());
@@ -59,7 +60,7 @@ public class StudyRegistrationControllerTests {
 
     @Test
     void testGetStudiesByCurator() {
-        String sessionId = "session123";
+        Jwt jwt = mock(Jwt.class);
         String status = "Approved";
         List<UserStudyRegistrationDTO> expectedStudies = List.of(
                 new UserStudyRegistrationDTO(),
@@ -67,7 +68,7 @@ public class StudyRegistrationControllerTests {
         );
         when(studyRegistrationService.getUserStudiesByCurator(status)).thenReturn(expectedStudies);
 
-        ResponseEntity<?> response = studyRegistrationController.getStudiesByCurator(sessionId, status);
+        ResponseEntity<?> response = studyRegistrationController.getStudiesByCurator(jwt, status);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(expectedStudies, response.getBody());

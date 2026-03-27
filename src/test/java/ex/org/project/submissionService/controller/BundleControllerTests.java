@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-import ex.org.project.submissionService.auth.UserAuthService;
 import ex.org.project.submissionService.controllers.BundleController;
 import ex.org.project.submissionService.models.dtos.SubmissionBundlesDTO;
 import ex.org.project.submissionService.services.*;
@@ -23,9 +22,6 @@ public class BundleControllerTests {
 
     @Mock
     private BundleService bundleService;
-
-    @Mock
-    private UserAuthService authService;
 
     @InjectMocks
     private BundleController bundleController;

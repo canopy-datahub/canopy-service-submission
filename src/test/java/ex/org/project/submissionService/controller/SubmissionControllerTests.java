@@ -12,6 +12,7 @@ import java.util.List;
 
 import ex.org.project.submissionService.auth.AccessRole;
 import ex.org.project.submissionService.auth.UserAuthService;
+import ex.org.project.submissionService.auth.core.KeycloakAuthenticationService;
 import ex.org.project.submissionService.services.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ex.org.project.submissionService.controllers.SubmissionController;
 import ex.org.project.submissionService.models.dtos.StudiesDTO;
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.security.oauth2.jwt.Jwt;
 
 @ExtendWith(MockitoExtension.class)
 public class SubmissionControllerTests {
@@ -37,7 +38,7 @@ public class SubmissionControllerTests {
     private  DataFileService datafileService;
 
 	@Mock
-	private UserAuthService authService;
+  private KeycloakAuthenticationService authenticationService;
 
 	@InjectMocks
 	private SubmissionController submissionController;
@@ -45,24 +46,24 @@ public class SubmissionControllerTests {
     @BeforeEach
     void setup() {
         studyService = mock(SubmissionService.class);
-		submissionController = new SubmissionController(studyService, datafileService, bundleService, authService);
+		submissionController = new SubmissionController(studyService, datafileService, bundleService, authenticationService);
     }
 
 	@Test
 	public void testGetStudiesByDccName() {
-		String sessionId = "session123";
+    Jwt jwt = mock(Jwt.class);
 		List<StudiesDTO> studiesList = new ArrayList<>();
 		Integer userId = 1;
 
 		// Mock the behavior of the studyService.getStudyPropertyValues() method to
 		// return the studiesList.
-		when(authService.checkAuth(eq(sessionId), eq(List.of(AccessRole.DATA_SUBMITTER))))
+		when(authenticationService.checkAuth(eq(jwt), eq(List.of(AccessRole.DATA_SUBMITTER))))
 				.thenReturn(userId);
 		when(studyService.getStudiesByUserCenter(eq(userId)))
 				.thenReturn(studiesList);
 
 		// Call the getStudiesByDccName() method of the controller and store the result.
-		ResponseEntity<List<StudiesDTO>> response = submissionController.getStudiesByUserCenter(sessionId);
+		ResponseEntity<List<StudiesDTO>> response = submissionController.getStudiesByUserCenter(jwt);
 
 		assertNotNull(response);
 		assertEquals(studiesList, response.getBody());

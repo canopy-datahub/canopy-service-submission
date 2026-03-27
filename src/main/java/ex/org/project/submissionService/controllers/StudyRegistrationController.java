@@ -1,7 +1,7 @@
 package ex.org.project.submissionService.controllers;
 
 import ex.org.project.submissionService.auth.AccessRole;
-import ex.org.project.submissionService.auth.UserAuthService;
+import ex.org.project.submissionService.auth.core.KeycloakAuthenticationService;
 import ex.org.project.submissionService.models.dtos.StudyRegistrationDTO;
 import ex.org.project.submissionService.models.dtos.UserStudyRegistrationDTO;
 import ex.org.project.submissionService.services.DataFileService;
@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,13 +31,13 @@ public class StudyRegistrationController {
 
     private final StudyRegistrationService studyRegistrationService;
     private final DataFileService datafileService;
-    private final UserAuthService authService;
+    private final KeycloakAuthenticationService authenticationService;
 
     @PostMapping("/curator/create")
-    public ResponseEntity<Map<String, Integer>> uploadNewStudyAsCurator(@CookieValue(value="chocolateChip", required = false) String sessionId,
+    public ResponseEntity<Map<String, Integer>> uploadNewStudyAsCurator(@AuthenticationPrincipal Jwt jwt,
                                                                @RequestBody StudyRegistrationDTO studyRegistrationDTO,
                                                                @RequestParam Boolean shouldSubmit) {
-        Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
+        Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
 
         Map<String, Integer> response = studyRegistrationService.registerNewStudy(studyRegistrationDTO, "Curator", userId, shouldSubmit);
         if(shouldSubmit){
@@ -47,25 +49,25 @@ public class StudyRegistrationController {
     }
 
     @PostMapping("/center/create")
-    public ResponseEntity<Map<String, Integer>> uploadNewStudy(@CookieValue(value="chocolateChip", required = false) String sessionId,
+    public ResponseEntity<Map<String, Integer>> uploadNewStudy(@AuthenticationPrincipal Jwt jwt,
                                                                @RequestBody StudyRegistrationDTO studyRegistrationDTO,
                                                                @RequestParam Boolean shouldSubmit) {
-        Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
+        Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
         return new ResponseEntity<>(studyRegistrationService.registerNewStudy(studyRegistrationDTO, "Center", userId, shouldSubmit), HttpStatus.CREATED);
     }
 
     @GetMapping("/getValues")
-    public ResponseEntity<StudyRegistrationDTO> getStudyPropertyValues(@CookieValue(value="chocolateChip", required = false) String sessionId,
+    public ResponseEntity<StudyRegistrationDTO> getStudyPropertyValues(@AuthenticationPrincipal Jwt jwt,
                                                                        @RequestParam Integer studyId){
-        authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER, AccessRole.DATA_CURATOR));
+        authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER, AccessRole.DATA_CURATOR));
         return ResponseEntity.ok(studyRegistrationService.getStudyProperties(studyId));
     }
 
     @PutMapping("/curator/edit")
-    public ResponseEntity<String> editStudyAsCurator(@CookieValue(value="chocolateChip", required = false) String sessionId,
+    public ResponseEntity<String> editStudyAsCurator(@AuthenticationPrincipal Jwt jwt,
                                                      @RequestBody StudyRegistrationDTO studyRegistrationDTO,
                                                      @RequestParam Boolean shouldSubmit){
-        Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
+        Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
         //TODO: track edits
         String response = studyRegistrationService.editStudyPropertyValues(studyRegistrationDTO, "Curator", shouldSubmit, userId);
         if(shouldSubmit){
@@ -76,37 +78,37 @@ public class StudyRegistrationController {
     }
 
     @PutMapping("/center/edit")
-    public ResponseEntity<String> editStudyAsCenter(@CookieValue(value="chocolateChip", required = false) String sessionId,
+    public ResponseEntity<String> editStudyAsCenter(@AuthenticationPrincipal Jwt jwt,
                                                     @RequestBody StudyRegistrationDTO studyRegistrationDTO,
                                                     @RequestParam Boolean shouldSubmit){
-        Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
+        Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
         //TODO: track edits
         String response = studyRegistrationService.editStudyPropertyValues(studyRegistrationDTO, "Center", shouldSubmit, userId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/center/studies")
-    public ResponseEntity<List<UserStudyRegistrationDTO>> getStudiesByCenter(@CookieValue(value="chocolateChip", required = false) String sessionId,
+    public ResponseEntity<List<UserStudyRegistrationDTO>> getStudiesByCenter(@AuthenticationPrincipal Jwt jwt,
                                                                           @RequestParam("status") String status) {
-        Integer userId = authService.checkAuth(sessionId, List.of(AccessRole.DATA_SUBMITTER));
+        Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
         List<UserStudyRegistrationDTO> studies = studyRegistrationService.getUserStudiesByCenter(userId, status);
         return ResponseEntity.ok(studies);
     }
 
     @GetMapping("/curator/studies")
-    public ResponseEntity<List<UserStudyRegistrationDTO>> getStudiesByCurator(@CookieValue(value="chocolateChip", required = false) String sessionId,
+    public ResponseEntity<List<UserStudyRegistrationDTO>> getStudiesByCurator(@AuthenticationPrincipal Jwt jwt,
                                                                               @RequestParam("status") String status){
-        authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR));
+        authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
         List<UserStudyRegistrationDTO> studies = studyRegistrationService.getUserStudiesByCurator(status);
         return ResponseEntity.ok(studies);
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteStudy(@CookieValue(value="chocolateChip", required = false) String sessionId,
+    public ResponseEntity<String> deleteStudy(@AuthenticationPrincipal Jwt jwt,
                                                    @RequestParam("studyId") Integer studyId,
                                                   @RequestParam("deleteStudy") Optional<Boolean> deleteStudy) {
         //data submitter is only able to delete the saved(draft) studies
-        authService.checkAuth(sessionId, List.of(AccessRole.DATA_CURATOR, AccessRole.DATA_SUBMITTER));
+        authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR, AccessRole.DATA_SUBMITTER));
         //by default this function deletes the files and submissions associated with study.
         datafileService.deleteFilesAndSubmissions(studyId);
         log.info("Successfully deleted files and submissions for study id: {}", studyId);
