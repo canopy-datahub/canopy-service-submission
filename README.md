@@ -1,8 +1,8 @@
 # Submission Service
 
-Spring Boot 3 microservice for Data Hub 3.0. It is running on Java 17.
+Spring Boot 3 microservice for Canopy. It is running on Java 17.
 
-Submission Service is the largest service (excluding UI) in the Data Hub system.
+Submission Service is the largest service (excluding UI) in the Canopy platform.
 It handles the majority of the data and study ingest logic, including, but not limited to:
 * Data Ingest
   * Submission creation
@@ -23,7 +23,7 @@ If using secrets manager for environment variables, AWS CLI needs to be installe
 
 There are quite a few environment variables that need to be set:
 * dbuser
-  * Open Search hostname / url
+  * database username
 * password
   * database password for dbuser
 * host
@@ -37,17 +37,17 @@ There are quite a few environment variables that need to be set:
 * ApprovedS3Bucket
   * Name of S3 bucket to hold approved files
 * SFTPIngestBucket
-  * Name of S3 bucket used to store sftp files before being processed into the Data Hub system
+  * Name of S3 bucket used to store sftp files before being processed into the Canopy system
 * PiiQueue
-  * Name of sqs queue where PII validation requests are to be sent
+  * Name of SQS queue where PII validation requests are to be sent
 * EmailQueue
   * Name of SQS queue where email requests are sent and processed
 * supportEmail
-  * Email address that is used to send emails from the Data Hub system
+  * Email address that is used to send emails from the Canopy platform
 * StakeholderEmailsStudyReg
   * A comma separated list of any additional study reg stakeholders, to be emailed on study upload and approval
 * HostURL
-  * hostname for the frontend datahub system
+  * hostname for the Canopy frontend
 In a specific instance, the only environment variable that needs to be set is:
 * spring_profiles_active
   * This should be set to '{environment}'
