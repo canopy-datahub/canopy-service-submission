@@ -19,6 +19,9 @@ public class AuthUser {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "uuid", unique = true)
+    private String uuid;
+
     @Column(name = "email_address")
     private String email;
 

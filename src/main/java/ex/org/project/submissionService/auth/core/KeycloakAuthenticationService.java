@@ -56,13 +56,16 @@ public class KeycloakAuthenticationService {
      * @throws UserNotFoundException if user not found in database
      */
     public AuthUser getAuthenticatedUser(Jwt jwt) {
-        String email = keycloakJwtService.extractEmail(jwt);
-        log.debug("Authenticating user with email: {}", email);
+        if (jwt == null) {
+            throw new UserAuthenticationException("No authentication token provided");
+        }
+        String keycloakUuid = keycloakJwtService.extractSubject(jwt);
+        log.debug("Authenticating user with Keycloak UUID: {}", keycloakUuid);
 
-        return authUserRepository.findByEmail(email)
+        return authUserRepository.findByUuid(keycloakUuid)
                 .orElseThrow(() -> {
-                    log.error("User not found in database with email: {}", email);
-                    return new UserNotFoundException("User not found with email: " + email);
+                    log.error("User not found in database with UUID: {}", keycloakUuid);
+                    return new UserNotFoundException("User not found with UUID: " + keycloakUuid);
                 });
     }
 
