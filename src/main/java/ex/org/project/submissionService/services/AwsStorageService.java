@@ -125,8 +125,13 @@ public class AwsStorageService implements StorageService {
             );
 
             //set file metadata once additional requests complete
-            String checksum = checksumResponse.get().checksum().checksumSHA256();
-            s3File.setChecksumHash(checksum);
+            GetObjectAttributesResponse attrResponse = checksumResponse.get();
+            if (attrResponse.checksum() != null) {
+                String checksum = attrResponse.checksum().checksumSHA256();
+                s3File.setChecksumHash(checksum);
+            } else {
+                log.warn("No checksum attribute returned from S3 for key: {}", s3File.getFileKey());
+            }
             s3File.setUploadSuccessful(true);
             return s3File;
 
@@ -159,7 +164,11 @@ public class AwsStorageService implements StorageService {
         if(type == null) {
             type = typeRepository.findByName("other");
         }
-        s3File.setFileTypeId(type.getId());
+        if (type != null) {
+            s3File.setFileTypeId(type.getId());
+        } else {
+            log.warn("No S3FileType found for content type '{}' or fallback 'other'. fileTypeId will not be set.", s3File.getFileType());
+        }
 
         Optional<PutObjectResponse> response = checkSuccess(uploadToS3(s3File, file, s3InitialUploadBucket));
         if(response.isEmpty()){
@@ -283,13 +292,18 @@ public class AwsStorageService implements StorageService {
                         .build()
         );
 
-        //set file metadata once additional requests complete
         try {
-            String checksum = checksumResponse.get().checksum().checksumSHA256();
-            s3File.setChecksumHash(checksum);
+            GetObjectAttributesResponse attrResponse = checksumResponse.get();
+            if (attrResponse.checksum() != null) {
+                String checksum = attrResponse.checksum().checksumSHA256();
+                s3File.setChecksumHash(checksum);
+            } else {
+                log.warn("No checksum attribute returned from S3 for key: {}", s3File.getFileKey());
+            }
             s3File.setUploadSuccessful(true);
         } catch (CancellationException | ExecutionException | InterruptedException e){
-            log.error("Error getting checksum value from s3." );
+            log.error("Error getting checksum value from s3 for key: {}", s3File.getFileKey(), e);
+            s3File.setUploadSuccessful(true);
         }
     }
 
