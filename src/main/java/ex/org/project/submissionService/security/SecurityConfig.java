@@ -21,7 +21,7 @@ public class SecurityConfig {
         )
         // .csrf(csrf -> csrf
         //     .ignoringRequestMatchers(EndpointRequest.to("shutdown"))
-        //     .ignoringRequestMatchers("/api/submission-service/v1/**")
+        //     .ignoringRequestMatchers("/api/submission/v1/**")
         // )
         .csrf(csrf -> csrf.disable())
         // Enable OAuth2 Resource Server with JWT

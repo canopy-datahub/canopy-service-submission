@@ -17,7 +17,7 @@ spring:
 server:
   port: 8080
   servlet:
-    context-path: /api/submission-service/v1
+    context-path: /api/submission/v1
   # request size bigger because headers
   max-file-size-MB: 1024
   max-request-size-MB: 1025
