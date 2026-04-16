@@ -1,8 +1,6 @@
 # DEFAULT
 spring:
   mvc:
-    servlet:
-      path: /api/submission-service/v1
     log-request-details: false
     log-resolved-exception: false
   jpa:
@@ -18,6 +16,8 @@ spring:
 
 server:
   port: 8080
+  servlet:
+    context-path: /api/submission-service/v1
   # request size bigger because headers
   max-file-size-MB: 1024
   max-request-size-MB: 1025
