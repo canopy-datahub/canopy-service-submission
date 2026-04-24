@@ -75,18 +75,27 @@ public class UploadController {
 	}
 
 	@SqsListener(value = "${SFTPQueue}")
-	@GetMapping("/processSFTP")
-	public ResponseEntity<String> processSFTP(Message message) {
-		try{
-			boolean sftpProcessed = sftpService.processSFTPUpload(message.body(), message.receiptHandle());
-			if(sftpProcessed){
-				return ResponseEntity.ok().build();
-			}else {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-			}
+	public void processSFTP(Message message) {
+		try {
+			sftpService.processSFTPUpload(message.body(), message.receiptHandle());
+		} catch (BadDataException e) {
+			log.error("BadDataException during SQS SFTP processing", e);
 		}
-		catch (BadDataException e){
-			log.error("BadDataException Exception", e);
+	}
+
+	@PostMapping("/processSFTP")
+	public ResponseEntity<String> triggerSFTPProcessing(@AuthenticationPrincipal Jwt jwt,
+														@RequestBody String messageBody) {
+		authenticationService.checkAuth(jwt, List.of(AccessRole.ADMIN));
+		try {
+			boolean sftpProcessed = sftpService.processSFTPUpload(messageBody, null);
+			if (sftpProcessed) {
+				return ResponseEntity.ok().build();
+			} else {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("SFTP processing failed");
+			}
+		} catch (BadDataException e) {
+			log.error("BadDataException during manual SFTP trigger", e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
 		}
 	}

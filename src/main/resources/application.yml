@@ -1,8 +1,6 @@
 # DEFAULT
 spring:
   mvc:
-    servlet:
-      path: /api/submission-service/v1
     log-request-details: false
     log-resolved-exception: false
   jpa:
@@ -17,7 +15,9 @@ spring:
           jwk-set-uri: ${DATAHUB_KEYCLOAK_JWK_SET_URI}
 
 server:
-  port: 8080
+  port: 8083
+  servlet:
+    context-path: /api/submission/v1
   # request size bigger because headers
   max-file-size-MB: 1024
   max-request-size-MB: 1025

@@ -127,7 +127,9 @@ public class SFTPService {
         String zipfile = json.getJSONObject("detail").getJSONObject("object").get("key").toString();
 
         //trigger sftp file upload and store submissionIds of successful uploads
-        deleteQueueMessage(sftpQueue, receiptHandle);
+        if (receiptHandle != null) {
+            deleteQueueMessage(sftpQueue, receiptHandle);
+        }
         SftpUploadInfo sftpUploadInfo = new SftpUploadInfo();
         HashSet<Integer> sftpSubmissions = uploadFilesSFTP(zipfile, bucket, region, sftpUploadInfo);
         //delete sftp package after successful upload
