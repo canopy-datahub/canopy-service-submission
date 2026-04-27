@@ -1,10 +1,17 @@
 package org.canopyplatform.canopy.submissionservice.auth.core;
 
-import org.canopyplatform.canopy.submissionservice.auth.*;
+import org.canopyplatform.canopy.submissionservice.auth.UserAuthenticationException;
+import org.canopyplatform.canopy.submissionservice.auth.UserAuthorizationException;
+import org.canopyplatform.canopy.submissionservice.auth.AccessRole;
+import org.canopyplatform.canopy.submissionservice.auth.AuthLookupStatusRepository;
+import org.canopyplatform.canopy.submissionservice.auth.AuthRole;
+import org.canopyplatform.canopy.submissionservice.auth.AuthUser;
+import org.canopyplatform.canopy.submissionservice.auth.AuthUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -43,18 +50,24 @@ import java.util.List;
 @RequiredArgsConstructor
 public class KeycloakAuthenticationService {
 
+    private static final int STATUS_ACTIVE = 1;
+
     private final AuthUserRepository authUserRepository;
+    private final AuthLookupStatusRepository authLookupStatusRepository;
     private final KeycloakJwtService keycloakJwtService;
 
     /**
-     * Get authenticated user from JWT token.
-     * Extracts email from JWT and loads user with roles from database.
+     * Get authenticated user from JWT token, provisioning a new row on first login.
+     *
+     * <p>The JWT signature has already been verified by Spring Security against
+     * Keycloak's public key (JWK Set URI), so the {@code sub} claim is guaranteed
+     * to be the genuine Keycloak UUID — it cannot be forged.
      *
      * @param jwt JWT token from SecurityContext
      * @return AuthUser entity with roles eagerly loaded
-     * @throws UserAuthenticationException if JWT is invalid
-     * @throws UserNotFoundException if user not found in database
+     * @throws UserAuthenticationException if JWT is missing required claims
      */
+    @Transactional
     public AuthUser getAuthenticatedUser(Jwt jwt) {
         if (jwt == null) {
             throw new UserAuthenticationException("No authentication token provided");
@@ -63,10 +76,29 @@ public class KeycloakAuthenticationService {
         log.debug("Authenticating user with Keycloak UUID: {}", keycloakUuid);
 
         return authUserRepository.findByUuid(keycloakUuid)
-                .orElseThrow(() -> {
-                    log.error("User not found in database with UUID: {}", keycloakUuid);
-                    return new UserNotFoundException("User not found with UUID: " + keycloakUuid);
-                });
+                .orElseGet(() -> provisionUser(jwt, keycloakUuid));
+    }
+
+    /**
+     * Create a new user row from Keycloak JWT claims on first login (JIT provisioning).
+     */
+    private AuthUser provisionUser(Jwt jwt, String keycloakUuid) {
+        String email = keycloakJwtService.extractEmail(jwt);
+        String firstName = jwt.getClaimAsString("given_name");
+        String lastName = jwt.getClaimAsString("family_name");
+
+        log.info("Provisioning new user from Keycloak: uuid={}, email={}", keycloakUuid, email);
+
+        AuthUser newUser = new AuthUser();
+        newUser.setUuid(keycloakUuid);
+        newUser.setEmail(email);
+        newUser.setFirstName(firstName != null ? firstName : "");
+        newUser.setLastName(lastName != null ? lastName : "");
+        newUser.setInternalUser(false);
+        newUser.setStatus(authLookupStatusRepository.getReferenceById(STATUS_ACTIVE));
+        newUser.setRoles(Collections.emptyList());
+
+        return authUserRepository.save(newUser);
     }
 
     /**

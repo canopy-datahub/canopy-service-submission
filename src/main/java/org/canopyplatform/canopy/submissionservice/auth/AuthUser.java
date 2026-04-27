@@ -22,6 +22,12 @@ public class AuthUser {
     @Column(name = "uuid", unique = true)
     private String uuid;
 
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
+    private String lastName;
+
     @Column(name = "email_address")
     private String email;
 
