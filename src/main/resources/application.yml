@@ -55,7 +55,7 @@ management:
 logging:
   level:
     root: warn
-    ex.org.project.submissionService:
+    org.canopyplatform.canopy.submissionservice:
       SubmissionServiceApplication: info
     org.springframework.web.servlet:
       DispatcherServlet: trace
@@ -112,7 +112,7 @@ management:
 logging:
   level:
       root: warn
-      ex.org.project.submissionService:
+      org.canopyplatform.canopy.submissionservice:
         SubmissionServiceApplication: info
       org.springframework.web.servlet:
         DispatcherServlet: warn
