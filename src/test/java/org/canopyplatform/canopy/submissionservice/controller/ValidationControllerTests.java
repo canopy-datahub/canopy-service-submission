@@ -1,6 +1,5 @@
 package org.canopyplatform.canopy.submissionservice.controller;
 
-import org.canopyplatform.canopy.submissionservice.auth.UserAuthService;
 import org.canopyplatform.canopy.submissionservice.controllers.ValidationController;
 import org.canopyplatform.canopy.submissionservice.models.dtos.ValidationResultsDTO;
 import org.canopyplatform.canopy.submissionservice.services.BundleService;
@@ -23,8 +22,6 @@ class ValidationControllerTests {
     @Mock
     private BundleService bundleService;
 
-    @Mock
-    private UserAuthService authService;
 
     @InjectMocks
     private ValidationController validationController;
@@ -40,8 +37,6 @@ class ValidationControllerTests {
         ValidationResultsDTO dto = new ValidationResultsDTO();
         dto.setSubmissionId(1);
 
-        when(authService.checkAuth(anyString(), anyList()))
-                .thenReturn(1);
         when(validationService.updateFileAck(dto, 1))
                 .thenReturn(true);
 
@@ -58,8 +53,6 @@ class ValidationControllerTests {
         ValidationResultsDTO dto = new ValidationResultsDTO();
         dto.setSubmissionId(1);
 
-        when(authService.checkAuth(anyString(), anyList()))
-                .thenReturn(1);
         when(validationService.updateFileAck(dto, 1))
                 .thenReturn(false);
 
@@ -76,8 +69,6 @@ class ValidationControllerTests {
         ValidationResultsDTO dto = new ValidationResultsDTO();
         dto.setSubmissionId(1);
 
-        when(authService.checkAuth(anyString(), anyList()))
-                .thenReturn(1);
         when(validationService.updateFileAck(dto, 1))
                 .thenReturn(false);
 
