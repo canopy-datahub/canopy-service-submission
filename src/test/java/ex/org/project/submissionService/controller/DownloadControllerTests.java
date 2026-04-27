@@ -30,7 +30,7 @@ public class DownloadControllerTests {
         DownloadService downloadService = mock(DownloadService.class);
         Jwt jwt = mock(Jwt.class);
 
-        ReflectionTestUtils.setField(downloadController, "downloadService", downloadService);
+        ReflectionTestUtils.setField(downloadController, "downloadservice", downloadService);
 
         downloadController.exportValidationErrorsByFileIdToCSV(response, jwt, 1);
 
@@ -43,7 +43,7 @@ public class DownloadControllerTests {
         HttpServletResponse response = mock(HttpServletResponse.class);
         DownloadService downloadService = mock(DownloadService.class);
         Jwt jwt = mock(Jwt.class);
-        ReflectionTestUtils.setField(downloadController, "downloadService", downloadService);
+        ReflectionTestUtils.setField(downloadController, "downloadservice", downloadService);
 
         downloadController.exportValidationErrorsBySubmissionToCSV(response, jwt, 1);
 
@@ -57,7 +57,7 @@ public class DownloadControllerTests {
         DownloadService downloadService = mock(DownloadService.class);
         Jwt jwt = mock(Jwt.class);
 
-        ReflectionTestUtils.setField(downloadController, "downloadService", downloadService);
+        ReflectionTestUtils.setField(downloadController, "downloadservice", downloadService);
 
         downloadController.exportValidationErrorsByFileIdToCSV(response, jwt, null);
         verify(downloadService).getValidationErrors(response, null);
@@ -70,7 +70,7 @@ public class DownloadControllerTests {
         DownloadService downloadService = mock(DownloadService.class);
         Jwt jwt = mock(Jwt.class);
 
-        ReflectionTestUtils.setField(downloadController, "downloadService", downloadService);
+        ReflectionTestUtils.setField(downloadController, "downloadservice", downloadService);
 
         downloadController.exportValidationErrorsBySubmissionToCSV(response, jwt, null);
 
