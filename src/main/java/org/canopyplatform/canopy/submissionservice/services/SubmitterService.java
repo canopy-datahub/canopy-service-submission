@@ -7,7 +7,6 @@ import org.canopyplatform.canopy.submissionservice.exceptions.custom.FileDeletio
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.StatusNotFoundException;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.SubmissionIdInvalidException;
 import org.canopyplatform.canopy.submissionservice.models.*;
-import org.canopyplatform.canopy.submissionservice.models.*;
 import org.canopyplatform.canopy.submissionservice.models.dtos.SubmissionInfoDTO;
 import org.canopyplatform.canopy.submissionservice.repositories.DataFileRepository;
 import org.canopyplatform.canopy.submissionservice.repositories.LkupStatusRepository;

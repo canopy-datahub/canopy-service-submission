@@ -6,8 +6,6 @@ import org.canopyplatform.canopy.submissionservice.models.*;
 import org.canopyplatform.canopy.submissionservice.repositories.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.canopyplatform.canopy.submissionservice.models.*;
-import org.canopyplatform.canopy.submissionservice.repositories.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

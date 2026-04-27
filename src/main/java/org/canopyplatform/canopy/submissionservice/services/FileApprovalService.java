@@ -21,10 +21,7 @@ import org.canopyplatform.canopy.submissionservice.models.dtos.*;
 import org.canopyplatform.canopy.submissionservice.auth.UserNotFoundException;
 import org.canopyplatform.canopy.submissionservice.emails.EmailRequestService;
 
-import org.canopyplatform.canopy.submissionservice.exceptions.custom.*;
 
-import org.canopyplatform.canopy.submissionservice.models.*;
-import org.canopyplatform.canopy.submissionservice.models.dtos.*;
 import org.canopyplatform.canopy.submissionservice.mappers.SubmissionByCuratorMapper;
 import org.canopyplatform.canopy.submissionservice.repositories.*;
 
@@ -32,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
-import org.canopyplatform.canopy.submissionservice.repositories.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;

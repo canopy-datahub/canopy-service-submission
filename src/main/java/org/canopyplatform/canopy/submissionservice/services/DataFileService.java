@@ -14,9 +14,7 @@ import com.opencsv.CSVReaderHeaderAware;
 import com.opencsv.CSVReaderHeaderAwareBuilder;
 
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.*;
-import org.canopyplatform.canopy.submissionservice.exceptions.custom.*;
 import org.canopyplatform.canopy.submissionservice.mappers.S3FileMapper;
-import org.canopyplatform.canopy.submissionservice.models.*;
 import org.canopyplatform.canopy.submissionservice.models.*;
 import org.canopyplatform.canopy.submissionservice.models.dtos.S3FileDTO;
 import org.canopyplatform.canopy.submissionservice.models.dtos.StudiesDTO;
@@ -27,7 +25,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
-import org.canopyplatform.canopy.submissionservice.repositories.*;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

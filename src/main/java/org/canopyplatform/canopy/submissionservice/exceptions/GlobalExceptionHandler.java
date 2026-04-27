@@ -5,7 +5,6 @@ import org.canopyplatform.canopy.submissionservice.auth.UserAuthorizationExcepti
 import org.canopyplatform.canopy.submissionservice.auth.UserNotFoundException;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.*;
 import lombok.extern.slf4j.Slf4j;
-import org.canopyplatform.canopy.submissionservice.exceptions.custom.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

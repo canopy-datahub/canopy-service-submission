@@ -6,14 +6,12 @@ import org.canopyplatform.canopy.submissionservice.exceptions.custom.BadDataExce
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.StatusNotFoundException;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.ValidationErrorException;
 import org.canopyplatform.canopy.submissionservice.models.*;
-import org.canopyplatform.canopy.submissionservice.models.*;
 import org.canopyplatform.canopy.submissionservice.models.dtos.SubmissionBundlesDTO;
 import org.canopyplatform.canopy.submissionservice.repositories.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
-import org.canopyplatform.canopy.submissionservice.repositories.*;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;

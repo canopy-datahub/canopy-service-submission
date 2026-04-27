@@ -11,7 +11,6 @@ import org.canopyplatform.canopy.submissionservice.exceptions.custom.BadDataExce
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.DataFileNotFoundException;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.SubmissionIdInvalidException;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.ValidationErrorException;
-import org.canopyplatform.canopy.submissionservice.models.*;
 import org.canopyplatform.canopy.submissionservice.models.ValidationResult;
 import org.canopyplatform.canopy.submissionservice.models.dtos.ValidationResultsDTO;
 import org.canopyplatform.canopy.submissionservice.repositories.*;

@@ -3,7 +3,6 @@ package org.canopyplatform.canopy.submissionservice.auth.core;
 import org.canopyplatform.canopy.submissionservice.auth.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.canopyplatform.canopy.submissionservice.auth.*;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 

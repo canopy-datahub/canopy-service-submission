@@ -4,7 +4,6 @@ package org.canopyplatform.canopy.submissionservice.service;
 import org.canopyplatform.canopy.submissionservice.mappers.SubmitterInfoMapper;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.DataFileNotFoundException;
 import org.canopyplatform.canopy.submissionservice.models.*;
-import org.canopyplatform.canopy.submissionservice.models.*;
 import org.canopyplatform.canopy.submissionservice.models.dtos.SubmissionInfoDTO;
 import org.canopyplatform.canopy.submissionservice.repositories.DataFileRepository;
 import org.canopyplatform.canopy.submissionservice.repositories.DataSubmissionRepository;

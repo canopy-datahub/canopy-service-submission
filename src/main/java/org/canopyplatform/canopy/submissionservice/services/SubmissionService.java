@@ -13,8 +13,6 @@ import org.canopyplatform.canopy.submissionservice.exceptions.custom.SubmitterCe
 import org.canopyplatform.canopy.submissionservice.mappers.ViewStudyMapper;
 import org.canopyplatform.canopy.submissionservice.models.*;
 import org.canopyplatform.canopy.submissionservice.repositories.*;
-import org.canopyplatform.canopy.submissionservice.models.*;
-import org.canopyplatform.canopy.submissionservice.repositories.*;
 import org.springframework.stereotype.Service;
 
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.StudyPropertyValuesRetrievalException;
