@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-class AuthLookupStatus {
+public class AuthLookupStatus {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
