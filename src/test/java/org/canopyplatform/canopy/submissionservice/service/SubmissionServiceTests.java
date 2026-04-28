@@ -77,7 +77,7 @@ class SubmissionServiceTests {
 
         Assertions.assertFalse(result.isEmpty());
         StudiesDTO dto = result.get(0);
-        Assertions.assertEquals("(TestPhsNumber) Test Study Name", dto.getCenter());
+        Assertions.assertEquals("(10) Test Study Name", dto.getCenter());
     }
 
     @Test

@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +53,8 @@ public class FileApprovalServiceTests {
     private ViewStudyRepository viewStudyRepository;
     @Mock
     private StudyPropertyValueRepository studyPropertyValueRepository;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
     @Spy
     private SubmissionByCuratorMapper submissionByCuratorMapper = new SubmissionByCuratorMapperImpl();
     @Spy
