@@ -1,5 +1,6 @@
 package org.canopyplatform.canopy.submissionservice.controller;
 
+import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
 import org.canopyplatform.canopy.submissionservice.controllers.ValidationController;
 import org.canopyplatform.canopy.submissionservice.models.dtos.ValidationResultsDTO;
 import org.canopyplatform.canopy.submissionservice.services.BundleService;
@@ -22,6 +23,9 @@ class ValidationControllerTests {
     @Mock
     private BundleService bundleService;
 
+    @Mock
+    private KeycloakAuthenticationService authenticationService;
+
 
     @InjectMocks
     private ValidationController validationController;
@@ -29,6 +33,8 @@ class ValidationControllerTests {
     @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
+        // Auth check returns a valid user id (1) so downstream calls receive a non-null userId
+        when(authenticationService.checkAuth(any(), any())).thenReturn(1);
     }
 
     @Test

@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
 import org.canopyplatform.canopy.submissionservice.controllers.ReviewSubmitController;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.BadDataException;
 import org.canopyplatform.canopy.submissionservice.services.BundleService;
@@ -25,6 +26,9 @@ public class ReviewSubmitControllerTests {
 
     @Mock
     private BundleService bundleService;
+
+    @Mock
+    private KeycloakAuthenticationService authenticationService;
 
     @InjectMocks
     private ReviewSubmitController submitController;
