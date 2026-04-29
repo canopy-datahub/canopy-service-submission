@@ -62,7 +62,7 @@ public class StudyRegistrationService {
     private final Pattern valueIndexMatcher = Pattern.compile("(\\d+)");
     private static final List<String> PROPERTY_SOURCES = List.of("dbGaP/MTA", "Online Submission");
 
-    @Value("${radx.opensearch-lambda}") String openSearchLambda;
+    @Value("${canopy.opensearch-lambda}") String openSearchLambda;
 
     /**
      * Register a new study based on the study registration form

@@ -30,8 +30,8 @@ public class SqsMessageService {
     @Autowired
     public SqsMessageService(SqsAsyncClient sqsAsyncClient,
                              @Value("${s3-bucket.in-review}") String bucket,
-                             @Value("${radx.pii-queue}") String sqsQueuePii,
-                             @Value("${radx.emailQueue}") String emailQueue){
+                             @Value("${canopy.pii-queue}") String sqsQueuePii,
+                             @Value("${canopy.emailQueue}") String emailQueue){
         this.sqsAsyncClient = sqsAsyncClient;
         this.bucket = bucket;
         this.sqsQueuePii = sqsQueuePii;

@@ -31,7 +31,7 @@ s3-bucket:
 s3:
   download-directory: "workingDirectory/"
 
-radx:
+canopy:
   pii-queue: ${PiiQueue}
   supportEmail: ${supportEmail}
   emailQueue: ${EmailQueue}

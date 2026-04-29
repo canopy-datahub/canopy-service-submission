@@ -23,7 +23,7 @@ public class EmailRequestService {
     public EmailRequestService(EmailAddressService emailAddressService,
                                SqsMessageService messageService,
                                ViewStudyRepository viewStudyRepository,
-                               @Value("${radx.host-url}") String hostname){
+                               @Value("${canopy.host-url}") String hostname){
         this.emailAddressService = emailAddressService;
         this.messageService = messageService;
         this.viewStudyRepository = viewStudyRepository;
