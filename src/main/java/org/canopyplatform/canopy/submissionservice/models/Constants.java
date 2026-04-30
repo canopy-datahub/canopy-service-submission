@@ -37,7 +37,6 @@ public interface Constants {
     String USAGE_DATA_SUBMISSION = "data_submission";
     String USAGE_STUDY = "study";
     String USAGE_INSTITUTION = "institution";
-    String USAGE_WORKBENCH_REQUEST = "workbench_request";
     String USAGE_OTHER ="other";
 
     String STUDY_PROP_HAS_DATAFILES = "has_data_files";
