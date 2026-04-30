@@ -31,6 +31,14 @@ s3-bucket:
 s3:
   download-directory: "workingDirectory/"
 
+database:
+  db-user: ${dbuser}
+  db-password: ${password}
+  host: ${host}
+  port: ${port}
+  db-name: ${dbname}
+  db-driver-class-name: ${dbDriverClassName}
+
 canopy:
   pii-queue: ${PiiQueue}
   supportEmail: ${supportEmail}
