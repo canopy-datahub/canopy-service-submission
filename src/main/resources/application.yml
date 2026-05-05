@@ -154,3 +154,17 @@ spring:
 logging:
   pattern:
     console: "[SUBMISSION] [PROD] %d{yyyy-MM-dd HH:mm:ss.SSS} [%5p] --- [%15.15t] %-40.40logger{1.} :: %m%n%wEx"
+
+---
+# STAGING
+
+spring:
+  config:
+    import: aws-secretsmanager:${AWS_SECRET_NAME}
+    activate:
+      on-profile: staging
+  cloud.aws.region.static: us-east-1
+
+logging:
+  pattern:
+    console: "[SUBMISSION] [STAGING] %d{yyyy-MM-dd HH:mm:ss.SSS} [%5p] --- [%15.15t] %-40.40logger{1.} :: %m%n%wEx"
