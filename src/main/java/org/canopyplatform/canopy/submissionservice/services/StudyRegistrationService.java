@@ -10,6 +10,7 @@ import org.canopyplatform.canopy.submissionservice.mappers.ViewStudyCenterMapper
 import org.canopyplatform.canopy.submissionservice.models.*;
 import org.canopyplatform.canopy.submissionservice.models.dtos.StudyPropertyValueDTO;
 import org.canopyplatform.canopy.submissionservice.models.dtos.StudyRegistrationDTO;
+import org.canopyplatform.canopy.submissionservice.models.dtos.StudyRegistrationDetailsDTO;
 import org.canopyplatform.canopy.submissionservice.models.dtos.UserStudyRegistrationDTO;
 import org.canopyplatform.canopy.submissionservice.repositories.*;
 
@@ -91,16 +92,17 @@ public class StudyRegistrationService {
      * @param studyId ID of the study being returned
      * @return DTO containing all study property values associated with the supplied study ID
      */
-    public StudyRegistrationDTO getStudyProperties(Integer studyId) {
-        //check if study id is valid
-        studyRepository.findById(studyId)
+    @Transactional(readOnly = true)
+    public StudyRegistrationDetailsDTO getStudyProperties(Integer studyId) {
+        Study study = studyRepository.findById(studyId)
                 .orElseThrow(() -> new StudyNotFoundException("Study not found for study ID " + studyId));
         List<StudyPropertyValue> studyPropertyValueList = studyPropertyValueRepository.findAllByStudyId(studyId);
         if (studyPropertyValueList.isEmpty()) {
             throw new StudyNotFoundException("No property values found for study: " + studyId);
         }
         List<StudyPropertyValueDTO> spvDtoList = studyPropertyValueMapper.entityListToDtoList(studyPropertyValueList);
-        return new StudyRegistrationDTO(studyId, spvDtoList);
+        String statusName = study.getStatus() != null ? study.getStatus().getName() : null;
+        return new StudyRegistrationDetailsDTO(studyId, spvDtoList, statusName);
     }
 
     /**

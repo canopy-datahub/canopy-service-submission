@@ -3,6 +3,7 @@ package org.canopyplatform.canopy.submissionservice.controllers;
 import org.canopyplatform.canopy.submissionservice.auth.AccessRole;
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
 import org.canopyplatform.canopy.submissionservice.models.dtos.StudyRegistrationDTO;
+import org.canopyplatform.canopy.submissionservice.models.dtos.StudyRegistrationDetailsDTO;
 import org.canopyplatform.canopy.submissionservice.models.dtos.UserStudyRegistrationDTO;
 import org.canopyplatform.canopy.submissionservice.services.DataFileService;
 import org.canopyplatform.canopy.submissionservice.services.StudyRegistrationService;
@@ -57,8 +58,8 @@ public class StudyRegistrationController {
     }
 
     @GetMapping("/getValues")
-    public ResponseEntity<StudyRegistrationDTO> getStudyPropertyValues(@AuthenticationPrincipal Jwt jwt,
-                                                                       @RequestParam Integer studyId){
+    public ResponseEntity<StudyRegistrationDetailsDTO> getStudyPropertyValues(@AuthenticationPrincipal Jwt jwt,
+                                                                              @RequestParam Integer studyId){
         authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER, AccessRole.DATA_CURATOR));
         return ResponseEntity.ok(studyRegistrationService.getStudyProperties(studyId));
     }

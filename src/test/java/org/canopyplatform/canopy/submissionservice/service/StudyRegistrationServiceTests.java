@@ -12,6 +12,7 @@
  import org.canopyplatform.canopy.submissionservice.models.dtos.EntityPropertyDTO;
  import org.canopyplatform.canopy.submissionservice.models.dtos.StudyPropertyValueDTO;
  import org.canopyplatform.canopy.submissionservice.models.dtos.StudyRegistrationDTO;
+ import org.canopyplatform.canopy.submissionservice.models.dtos.StudyRegistrationDetailsDTO;
  import org.canopyplatform.canopy.submissionservice.models.dtos.UserStudyRegistrationDTO;
  import org.canopyplatform.canopy.submissionservice.repositories.*;
  import org.canopyplatform.canopy.submissionservice.services.*;
@@ -825,13 +826,14 @@
          when(studyPropertyValueRepository.findAllByStudyId(8))
                  .thenReturn(List.of(spv));
 
-         StudyRegistrationDTO response = studyRegistrationService.getStudyProperties(8);
+         StudyRegistrationDetailsDTO response = studyRegistrationService.getStudyProperties(8);
 
          assertEquals(8, response.studyId());
          assertEquals("test", response.studyPropertyValues().get(0).value());
          assertEquals(1, response.studyPropertyValues().get(0).id());
          assertEquals("Test", response.studyPropertyValues().get(0).entityProperty().name());
          assertEquals(123, response.studyPropertyValues().get(0).entityProperty().id());
+         assertNull(response.status());
 
          verify(studyPropertyValueMapper, times(1))
                  .entityListToDtoList(List.of(spv));
