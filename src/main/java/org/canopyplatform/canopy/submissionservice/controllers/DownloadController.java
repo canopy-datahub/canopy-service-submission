@@ -1,6 +1,5 @@
 package org.canopyplatform.canopy.submissionservice.controllers;
 
-import org.canopyplatform.canopy.submissionservice.auth.AccessRole;
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
 import org.canopyplatform.canopy.submissionservice.services.DownloadService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -8,8 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,7 +21,7 @@ public class DownloadController {
 													@AuthenticationPrincipal Jwt jwt,
 													@RequestParam("fileId") Integer fileId) {
 		//TODO: file authorization
-    authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR, AccessRole.DATA_SUBMITTER));
+    authenticationService.checkCapability(jwt, "submission.validation.errors.read");
 		downloadService.getValidationErrors(response, fileId);
 	}
 
@@ -32,7 +29,7 @@ public class DownloadController {
 	public void exportValidationErrorsBySubmissionToCSV(HttpServletResponse response,
 														@AuthenticationPrincipal Jwt jwt,
 														@RequestParam("submissionId") Integer submissionId) {
-    authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR, AccessRole.DATA_SUBMITTER));
+    authenticationService.checkCapability(jwt, "submission.validation.errors.read");
 		//TODO: limit access to submitters
 		downloadService.getValidationErrorsbySubmission(response, submissionId);
 	}

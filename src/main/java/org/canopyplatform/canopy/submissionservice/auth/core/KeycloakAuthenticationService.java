@@ -1,5 +1,6 @@
 package org.canopyplatform.canopy.submissionservice.auth.core;
 
+import org.canopyplatform.canopy.submissionservice.auth.AuthCapability;
 import org.canopyplatform.canopy.submissionservice.auth.UserAuthenticationException;
 import org.canopyplatform.canopy.submissionservice.auth.UserAuthorizationException;
 import org.canopyplatform.canopy.submissionservice.auth.AccessRole;
@@ -15,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Service for authenticating users from JWT tokens and checking authorization.
@@ -39,7 +42,7 @@ import java.util.List;
  *
  * @GetMapping("/admin")
  * public String adminEndpoint(@AuthenticationPrincipal Jwt jwt) {
- *     Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.ADMIN));
+ *     Integer userId = authenticationService.checkCapability(jwt, "submission.create");
  *     // ... admin only logic
  * }
  * }
@@ -175,6 +178,39 @@ public class KeycloakAuthenticationService {
      */
     public Integer checkAuth(Jwt jwt) {
         return checkAuth(jwt, Collections.emptyList());
+    }
+
+    /**
+     * Flatten a user's roles into the set of capability names they grant.
+     */
+    public Set<String> getCapabilities(AuthUser user) {
+        return user.getRoles().stream()
+                .filter(r -> r.getCapabilities() != null)
+                .flatMap(r -> r.getCapabilities().stream())
+                .map(AuthCapability::getName)
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    /**
+     * Check authentication and capability-based authorization. The user's
+     * effective capabilities are the union of capabilities granted by their
+     * assigned roles (see role_capability).
+     *
+     * @param jwt        JWT token from SecurityContext
+     * @param capability Required capability name (e.g. "submission.create")
+     * @return User ID if authorized
+     * @throws UserAuthorizationException if the user lacks the capability
+     */
+    public Integer checkCapability(Jwt jwt, String capability) {
+        AuthUser user = getAuthenticatedUser(jwt);
+        Set<String> caps = getCapabilities(user);
+        if (!caps.contains(capability)) {
+            log.warn("User {} lacks required capability '{}'. Has: {}",
+                    user.getEmail(), capability, caps);
+            throw new UserAuthorizationException(
+                    "User does not have the required capability: " + capability);
+        }
+        return user.getId();
     }
 }
 

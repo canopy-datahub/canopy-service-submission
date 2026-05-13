@@ -3,7 +3,6 @@ package org.canopyplatform.canopy.submissionservice.controllers;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.canopyplatform.canopy.submissionservice.auth.AccessRole;
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
 import org.canopyplatform.canopy.submissionservice.models.dtos.DetailsDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +29,7 @@ public class CuratorController {
   @GetMapping("/getSubmissions")
 	public ResponseEntity<?> getSubmittedSubmissions(@AuthenticationPrincipal Jwt jwt,
 													 @RequestParam("status") String status) {
-		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
+		authenticationService.checkCapability(jwt, "curator.submission.list");
 		//TODO: refactor errors
 		List<DataSubmissionDTO> submissions = approvalService.getSubmittedSubmissions(status);
 		return ResponseEntity.ok(submissions);
@@ -40,14 +39,14 @@ public class CuratorController {
 	public ResponseEntity<DetailsDTO> getFiles(@AuthenticationPrincipal Jwt jwt,
 											   @RequestParam("submissionId") Integer submissionId) {
 		System.out.println("Raw submissionId parameter: " + submissionId);
-		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
+		authenticationService.checkCapability(jwt, "curator.submission.read");
 		return ResponseEntity.ok(approvalService.getSubmissionBundleInfo(submissionId));
 	}
 
 	@PostMapping("/processFiles")
 	public ResponseEntity<String> processFiles(@AuthenticationPrincipal Jwt jwt,
 											   @RequestBody SubmissionApprovalDTO dto) {
-		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
+		authenticationService.checkCapability(jwt, "curator.submission.review");
 		//TODO: refactor errors
 		try {
 			approvalService.processSubmission(dto);
@@ -62,7 +61,7 @@ public class CuratorController {
 	@GetMapping("/all-submission-files")
 	public ResponseEntity<Object> downloadAllSubmissionFiles(@AuthenticationPrincipal Jwt jwt,
 															 @RequestParam Integer submissionId){
-		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
+		authenticationService.checkCapability(jwt, "curator.submission.download.bulk");
 		return approvalService.getAllSubmissionFiles(submissionId);
 	}
 }

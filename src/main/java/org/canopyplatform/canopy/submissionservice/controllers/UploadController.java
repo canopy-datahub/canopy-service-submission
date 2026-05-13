@@ -1,6 +1,5 @@
 package org.canopyplatform.canopy.submissionservice.controllers;
 
-import org.canopyplatform.canopy.submissionservice.auth.AccessRole;
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.BadDataException;
 import org.canopyplatform.canopy.submissionservice.models.dtos.S3FileDTO;
@@ -38,7 +37,7 @@ public class UploadController {
 	@GetMapping("/getFiles")
 	public ResponseEntity<?> getFiles(@AuthenticationPrincipal Jwt jwt,
 									  @RequestParam("submissionId") Integer submissionId) {
-		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		authenticationService.checkCapability(jwt, "submission.file.list");
 		//TODO: clean up error handling
 		try {
 			UploadFilesDTO uploadedFiles = datafileService.getUploadedFiles(submissionId);
@@ -53,7 +52,7 @@ public class UploadController {
 	public ResponseEntity<List<S3FileDTO>> uploadFiles(@AuthenticationPrincipal Jwt jwt,
 													   @RequestParam("files") List<MultipartFile> files,
 													   @RequestParam("submissionId") Integer submissionId) {
-		Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		Integer userId = authenticationService.checkCapability(jwt, "submission.file.upload");
 		List<S3FileDTO> s3FileDTOS = datafileService.createDataFiles(files, submissionId, userId);
 		return ResponseEntity.ok().body(s3FileDTOS);
 	}
@@ -61,7 +60,7 @@ public class UploadController {
 	@PostMapping("/createBundles")
 	public ResponseEntity<String> createBundles(@AuthenticationPrincipal Jwt jwt,
 												@RequestParam("submissionId") Integer submissionId) {
-		Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		Integer userId = authenticationService.checkCapability(jwt, "submission.bundle.create");
 		//TODO: clean up error handling
 			boolean bundlesCreated = bundleService.createBundles(submissionId);
 			String stepDescription = "Upload Files";
@@ -86,7 +85,7 @@ public class UploadController {
 	@PostMapping("/processSFTP")
 	public ResponseEntity<String> triggerSFTPProcessing(@AuthenticationPrincipal Jwt jwt,
 														@RequestBody String messageBody) {
-		authenticationService.checkAuth(jwt, List.of(AccessRole.ADMIN));
+		authenticationService.checkCapability(jwt, "ops.sftp.trigger");
 		try {
 			boolean sftpProcessed = sftpService.processSFTPUpload(messageBody, null);
 			if (sftpProcessed) {

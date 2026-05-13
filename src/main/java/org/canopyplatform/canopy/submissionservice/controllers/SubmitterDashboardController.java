@@ -2,7 +2,6 @@ package org.canopyplatform.canopy.submissionservice.controllers;
 
 import java.util.List;
 
-import org.canopyplatform.canopy.submissionservice.auth.AccessRole;
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +23,7 @@ public class SubmitterDashboardController {
 	@GetMapping("/getSubmissions")
 	public ResponseEntity<List<SubmissionInfoDTO>> getSubmissions(@AuthenticationPrincipal Jwt jwt,
 																  @RequestParam("status") String status) {
-		Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		Integer userId = authenticationService.checkCapability(jwt, "submission.read.own");
 		//TODO: submission authorization
 		List<SubmissionInfoDTO> userSubmissions = submitterService.getSubmissions(userId, status);
 		return ResponseEntity.ok(userSubmissions);
@@ -33,7 +32,7 @@ public class SubmitterDashboardController {
 	@DeleteMapping("/deleteSubmission")
 	public ResponseEntity<String> deleteSubmission(@AuthenticationPrincipal Jwt jwt,
 												   @RequestParam("submissionId") Integer submissionId) {
-		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		authenticationService.checkCapability(jwt, "submission.delete.own");
 		//TODO: submission authorization
 		submitterService.deleteSubmission(submissionId);
 		return new ResponseEntity<>("Submission successfully deleted", HttpStatus.OK);

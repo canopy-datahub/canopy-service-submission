@@ -39,14 +39,14 @@ public class UploadPortalController {
 
     @GetMapping("/curator/dashboard")
     public ResponseEntity<List<UploadPortalCuratorDashboardDTO>> getCuratorDashboardView(@AuthenticationPrincipal Jwt jwt){
-        authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
+        authenticationService.checkCapability(jwt, "upload-portal.dashboard.view");
         return ResponseEntity.ok(uploadPortalService.getCuratorDashboardView());
     }
 
     @DeleteMapping("/curator/dashboard/delete")
     public ResponseEntity<Void> deleteUpload(@AuthenticationPrincipal Jwt jwt,
                                            @RequestParam("uploadId") Integer uploadId){
-        Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
+        Integer userId = authenticationService.checkCapability(jwt, "upload-portal.dashboard.delete");
         uploadPortalService.deleteUpload(uploadId, userId);
         return ResponseEntity.ok().build();
     }

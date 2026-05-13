@@ -1,6 +1,5 @@
 package org.canopyplatform.canopy.submissionservice.controllers;
 
-import org.canopyplatform.canopy.submissionservice.auth.AccessRole;
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.BadDataException;
 import org.canopyplatform.canopy.submissionservice.models.dtos.GetBundleFilesDTO;
@@ -29,7 +28,7 @@ public class BundleController {
     @GetMapping("/get")
     public SubmissionBundlesDTO getBundles(@AuthenticationPrincipal Jwt jwt,
                                            @RequestParam("submissionId") Integer submissionId) {
-        authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+        authenticationService.checkCapability(jwt, "submission.bundle.read");
         //TODO: submission authorization check
         return bundleService.getBundles(submissionId);
     }
@@ -37,7 +36,7 @@ public class BundleController {
     @PostMapping("/update")
     public ResponseEntity<String> updateBundles(@AuthenticationPrincipal Jwt jwt,
                                                 @RequestBody SubmissionBundlesDTO dto) {
-        Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+        Integer userId = authenticationService.checkCapability(jwt, "submission.bundle.update");
         //TODO: bundle authorization check
         try {
             bundleService.updateBundles(dto);
@@ -55,7 +54,7 @@ public class BundleController {
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteBundle(@AuthenticationPrincipal Jwt jwt,
                                                @RequestParam("fileId") Integer fileId) {
-        authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+        authenticationService.checkCapability(jwt, "submission.bundle.delete");
         //TODO: bundle authorization check
         List<Integer> successfulFileIds = dataFileService.deleteBundle(fileId);
         return new ResponseEntity<>("Files deleted: " + successfulFileIds, HttpStatus.OK);
@@ -64,7 +63,7 @@ public class BundleController {
     @GetMapping("/getFiles")
     public ResponseEntity<GetBundleFilesDTO> getBundleFiles(@AuthenticationPrincipal Jwt jwt,
                                             @RequestParam("fileId") Integer fileId){
-        authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+        authenticationService.checkCapability(jwt, "submission.bundle.read");
         //TODO: bundle authorization check
         GetBundleFilesDTO files = bundleService.getBundleFiles(fileId);
         return ResponseEntity.ok().body(files);
@@ -73,7 +72,7 @@ public class BundleController {
     @PostMapping("/previousPage")
     public ResponseEntity<String> goBackAndUploadFiles(@AuthenticationPrincipal Jwt jwt,
                                                        @RequestParam("submissionId")Integer submissionId){
-        authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+        authenticationService.checkCapability(jwt, "submission.bundle.previousPage");
         bundleService.goBackAndUploadFiles(submissionId);
         return ResponseEntity.ok().build();
     }

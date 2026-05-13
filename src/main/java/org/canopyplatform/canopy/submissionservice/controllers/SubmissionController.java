@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import org.canopyplatform.canopy.submissionservice.auth.AccessRole;
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.DataFileNotFoundException;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.FileDeletionException;
@@ -37,14 +36,14 @@ public class SubmissionController {
 
 	@GetMapping("/getStudies")
 	public ResponseEntity<List<StudiesDTO>> getStudiesByUserCenter(@AuthenticationPrincipal Jwt jwt) {
-		Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		Integer userId = authenticationService.checkCapability(jwt, "submission.config.read");
 		return ResponseEntity.ok(studyService.getStudiesByUserCenter(userId));
 	}
 
 	@PostMapping("/create-submission")
 	public ResponseEntity<?> createSubmission(@AuthenticationPrincipal Jwt jwt,
 											  @RequestParam("studyId") Integer studyId) {
-		Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		Integer userId = authenticationService.checkCapability(jwt, "submission.create");
 		//TODO: clean up error handling
 		try {
 			Integer submissionId = studyService.createSubmission(studyId, userId);
@@ -57,14 +56,14 @@ public class SubmissionController {
 
 	@GetMapping("/getCategories")
 	public Map<String, List<DataFileCategory>> getDataFileCategories(@AuthenticationPrincipal Jwt jwt) {
-		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		authenticationService.checkCapability(jwt, "submission.config.read");
 		return bundleService.getDataFileCategories();
 	}
 
 	@GetMapping("/submissionInfo")
 	public ResponseEntity<?> submissionInfo(@AuthenticationPrincipal Jwt jwt,
 											@RequestParam("submissionId") Integer submissionId) {
-		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		authenticationService.checkCapability(jwt, "submission.read.own");
 		//TODO: submission authorization
 		//TODO: clean up error handling
 		try {
@@ -79,7 +78,7 @@ public class SubmissionController {
 	@DeleteMapping("/deleteFiles")
 	public ResponseEntity<String> deleteFile(@AuthenticationPrincipal Jwt jwt,
 											 @RequestParam("fileIds") List<Integer> fileIds) {
-		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		authenticationService.checkCapability(jwt, "submission.file.delete");
 		try{
 			boolean allDeleted = datafileService.deleteMultipleDatafiles(fileIds);
 			return ResponseEntity.status(HttpStatus.OK).body("Files were deleted: " + allDeleted);
@@ -93,7 +92,7 @@ public class SubmissionController {
 	public ResponseEntity<ValidationResultsDTO> replaceFile(@AuthenticationPrincipal Jwt jwt,
 															@RequestParam("fileId") Integer fileId,
 															@RequestParam("newFile") MultipartFile file) {
-		Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		Integer userId = authenticationService.checkCapability(jwt, "submission.file.replace");
 		//TODO: file authorization, maybe add status handling
 		ValidationResultsDTO results = datafileService.replaceDataFile(fileId, file, userId);
 		return new ResponseEntity<>(results, HttpStatus.OK);

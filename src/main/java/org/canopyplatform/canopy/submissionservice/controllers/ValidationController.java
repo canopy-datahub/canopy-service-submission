@@ -1,6 +1,5 @@
 package org.canopyplatform.canopy.submissionservice.controllers;
 
-import org.canopyplatform.canopy.submissionservice.auth.AccessRole;
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +29,7 @@ public class ValidationController {
 	@PostMapping("/validate")
 	public ResponseEntity<String> cdeValidation(@AuthenticationPrincipal Jwt jwt,
 												@RequestParam("submissionId") Integer submissionId) {
-		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		authenticationService.checkCapability(jwt, "submission.validate");
 		//TODO: submission authorization check
 		//TODO: clean up error handling
 		try {
@@ -54,7 +53,7 @@ public class ValidationController {
 	@GetMapping("/getResults")
 	public ValidationResultsDTO getValidationResults(@AuthenticationPrincipal Jwt jwt,
 													 @RequestParam("submissionId") Integer submissionId) {
-		authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER, AccessRole.DATA_CURATOR));
+		authenticationService.checkCapability(jwt, "submission.validation.read");
 		return validationService.getSubmissionValidationResults(submissionId);
 	}
 
@@ -62,7 +61,7 @@ public class ValidationController {
 	public ResponseEntity<Boolean> updateFileAcknowledgements(@AuthenticationPrincipal Jwt jwt,
 															  @RequestBody ValidationResultsDTO dto,
 															  @RequestParam("submit") Boolean shouldSubmit) {
-		Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		Integer userId = authenticationService.checkCapability(jwt, "submission.validation.acknowledge");
 		//TODO: submission authorization check
 		Boolean allFilesWithWarningsAcknowledged = validationService.updateFileAck(dto, userId);
 		boolean shouldIncrementStep = allFilesWithWarningsAcknowledged && shouldSubmit;

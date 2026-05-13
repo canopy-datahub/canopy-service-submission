@@ -3,7 +3,6 @@ package org.canopyplatform.canopy.submissionservice.controllers;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.canopyplatform.canopy.submissionservice.auth.AccessRole;
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +27,7 @@ public class ReviewSubmitController {
 	@PostMapping("/submit")
 	public ResponseEntity<String> submit(@AuthenticationPrincipal Jwt jwt,
 										 @RequestParam("submissionId") Integer submissionId) {
-		Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+		Integer userId = authenticationService.checkCapability(jwt, "submission.submit");
 		//TODO: submission authorization check
 		//TODO: refactor errors
 		try {

@@ -1,6 +1,5 @@
 package org.canopyplatform.canopy.submissionservice.controllers;
 
-import org.canopyplatform.canopy.submissionservice.auth.AccessRole;
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
 import org.canopyplatform.canopy.submissionservice.models.dtos.StudyRegistrationDTO;
 import org.canopyplatform.canopy.submissionservice.models.dtos.StudyRegistrationDetailsDTO;
@@ -38,7 +37,7 @@ public class StudyRegistrationController {
     public ResponseEntity<Map<String, Integer>> uploadNewStudyAsCurator(@AuthenticationPrincipal Jwt jwt,
                                                                @RequestBody StudyRegistrationDTO studyRegistrationDTO,
                                                                @RequestParam Boolean shouldSubmit) {
-        Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
+        Integer userId = authenticationService.checkCapability(jwt, "study.curator.create");
 
         Map<String, Integer> response = studyRegistrationService.registerNewStudy(studyRegistrationDTO, "Curator", userId, shouldSubmit);
         if(shouldSubmit){
@@ -53,14 +52,14 @@ public class StudyRegistrationController {
     public ResponseEntity<Map<String, Integer>> uploadNewStudy(@AuthenticationPrincipal Jwt jwt,
                                                                @RequestBody StudyRegistrationDTO studyRegistrationDTO,
                                                                @RequestParam Boolean shouldSubmit) {
-        Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+        Integer userId = authenticationService.checkCapability(jwt, "study.center.create");
         return new ResponseEntity<>(studyRegistrationService.registerNewStudy(studyRegistrationDTO, "Center", userId, shouldSubmit), HttpStatus.CREATED);
     }
 
     @GetMapping("/getValues")
     public ResponseEntity<StudyRegistrationDetailsDTO> getStudyPropertyValues(@AuthenticationPrincipal Jwt jwt,
                                                                               @RequestParam Integer studyId){
-        authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER, AccessRole.DATA_CURATOR));
+        authenticationService.checkCapability(jwt, "study.values.read");
         return ResponseEntity.ok(studyRegistrationService.getStudyProperties(studyId));
     }
 
@@ -68,7 +67,7 @@ public class StudyRegistrationController {
     public ResponseEntity<String> editStudyAsCurator(@AuthenticationPrincipal Jwt jwt,
                                                      @RequestBody StudyRegistrationDTO studyRegistrationDTO,
                                                      @RequestParam Boolean shouldSubmit){
-        Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
+        Integer userId = authenticationService.checkCapability(jwt, "study.curator.edit");
         //TODO: track edits
         String response = studyRegistrationService.editStudyPropertyValues(studyRegistrationDTO, "Curator", shouldSubmit, userId);
         if(shouldSubmit){
@@ -82,7 +81,7 @@ public class StudyRegistrationController {
     public ResponseEntity<String> editStudyAsCenter(@AuthenticationPrincipal Jwt jwt,
                                                     @RequestBody StudyRegistrationDTO studyRegistrationDTO,
                                                     @RequestParam Boolean shouldSubmit){
-        Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+        Integer userId = authenticationService.checkCapability(jwt, "study.center.edit");
         //TODO: track edits
         String response = studyRegistrationService.editStudyPropertyValues(studyRegistrationDTO, "Center", shouldSubmit, userId);
         return ResponseEntity.ok(response);
@@ -91,7 +90,7 @@ public class StudyRegistrationController {
     @GetMapping("/center/studies")
     public ResponseEntity<List<UserStudyRegistrationDTO>> getStudiesByCenter(@AuthenticationPrincipal Jwt jwt,
                                                                           @RequestParam("status") String status) {
-        Integer userId = authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_SUBMITTER));
+        Integer userId = authenticationService.checkCapability(jwt, "study.center.list");
         List<UserStudyRegistrationDTO> studies = studyRegistrationService.getUserStudiesByCenter(userId, status);
         return ResponseEntity.ok(studies);
     }
@@ -99,7 +98,7 @@ public class StudyRegistrationController {
     @GetMapping("/curator/studies")
     public ResponseEntity<List<UserStudyRegistrationDTO>> getStudiesByCurator(@AuthenticationPrincipal Jwt jwt,
                                                                               @RequestParam("status") String status){
-        authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR));
+        authenticationService.checkCapability(jwt, "study.curator.list");
         List<UserStudyRegistrationDTO> studies = studyRegistrationService.getUserStudiesByCurator(status);
         return ResponseEntity.ok(studies);
     }
@@ -109,7 +108,7 @@ public class StudyRegistrationController {
                                                    @RequestParam("studyId") Integer studyId,
                                                   @RequestParam("deleteStudy") Optional<Boolean> deleteStudy) {
         //data submitter is only able to delete the saved(draft) studies
-        authenticationService.checkAuth(jwt, List.of(AccessRole.DATA_CURATOR, AccessRole.DATA_SUBMITTER));
+        authenticationService.checkCapability(jwt, "study.delete");
         //by default this function deletes the files and submissions associated with study.
         datafileService.deleteFilesAndSubmissions(studyId);
         log.info("Successfully deleted files and submissions for study id: {}", studyId);

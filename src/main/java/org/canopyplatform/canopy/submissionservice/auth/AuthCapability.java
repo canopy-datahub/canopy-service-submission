@@ -6,15 +6,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name = "lkup_role")
-public class AuthRole {
+@Table(name = "lkup_capability")
+public class AuthCapability {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,13 +20,5 @@ public class AuthRole {
 
     @Column(name = "name")
     private String name;
-
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "role_capability",
-            joinColumns = { @JoinColumn(name = "role_id") },
-            inverseJoinColumns = { @JoinColumn(name = "capability_id") }
-    )
-    private List<AuthCapability> capabilities;
 
 }
