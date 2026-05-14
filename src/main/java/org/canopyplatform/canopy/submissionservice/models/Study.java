@@ -42,6 +42,10 @@ public class Study {
 
     private Timestamp modifiedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "access_level", nullable = false)
+    private AccessLevel accessLevel;
+
     @ManyToOne(fetch = FetchType.LAZY)
     private LkupStatus status;
 
