@@ -78,7 +78,10 @@ public class StudyRegistrationService {
 
         //have a new StudyRegistrationDTO instance that has the study id
         Integer studyId = study.getId();
-        StudyRegistrationDTO studyRegistrationDTOWithId = new StudyRegistrationDTO(studyId, studyRegistrationDTO.studyPropertyValues());
+        StudyRegistrationDTO studyRegistrationDTOWithId = new StudyRegistrationDTO(
+                studyId,
+                studyRegistrationDTO.studyPropertyValues(),
+                studyRegistrationDTO.accessLevel());
 
         updateStudyPropertyValues(studyRegistrationDTOWithId, role, userId, shouldSubmit, true);
 
@@ -101,7 +104,7 @@ public class StudyRegistrationService {
         }
         List<StudyPropertyValueDTO> spvDtoList = studyPropertyValueMapper.entityListToDtoList(studyPropertyValueList);
         String statusName = study.getStatus() != null ? study.getStatus().getName() : null;
-        return new StudyRegistrationDetailsDTO(studyId, spvDtoList, statusName);
+        return new StudyRegistrationDetailsDTO(studyId, spvDtoList, statusName, study.getAccessLevel());
     }
 
     /**
@@ -117,6 +120,12 @@ public class StudyRegistrationService {
         study.setStatus(status);
         study.setCreatedAt(Timestamp.from(Instant.now()));
         study.setCreatedBy(userId);
+        // Default to PUBLIC when the form didn't include it (older client, API
+        // call from a script, etc.). The DB also has DEFAULT 'PUBLIC' as a
+        // belt-and-braces safety net.
+        study.setAccessLevel(studyRegistrationDTO.accessLevel() != null
+                ? studyRegistrationDTO.accessLevel()
+                : AccessLevel.PUBLIC);
 
         String centerName = studyRegistrationDTO.studyPropertyValues().stream()
             .filter(spv -> spv.entityProperty() != null
@@ -154,6 +163,17 @@ public class StudyRegistrationService {
         Optional<Study> studyOpt = studyRepository.findById(studyRegistrationDTO.studyId());
         if (studyOpt.isEmpty()) {
             throw new StudyNotFoundException("No study found with ID: " + studyRegistrationDTO.studyId());
+        }
+
+        // Update access_level if the form supplied one. Null means "leave
+        // unchanged" — so an older client that doesn't send the field won't
+        // accidentally reset a previously-changed access level.
+        if (studyRegistrationDTO.accessLevel() != null) {
+            Study study = studyOpt.get();
+            if (study.getAccessLevel() != studyRegistrationDTO.accessLevel()) {
+                study.setAccessLevel(studyRegistrationDTO.accessLevel());
+                studyRepository.saveAndFlush(study);
+            }
         }
 
         updateStudyPropertyValues(studyRegistrationDTO, role, userId, shouldSubmit, false);
