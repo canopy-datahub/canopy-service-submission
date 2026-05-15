@@ -73,6 +73,34 @@ public interface ViewStudyRepository extends JpaRepository<ViewStudy, Integer> {
     )
     List<ViewStudy> findCenterStudiesByStatus(Integer centerId, String status);
 
+    /**
+     * Studies created by a specific user with a given status. Used by the
+     * Data Submitter dashboard, which now scopes to "studies I created"
+     * rather than "studies for my center."
+     */
+    @Query(
+            value = "select vs.* from view_study vs join study s on vs.study_id=s.id where s.created_by=:creatorId " +
+                    "and vs.status =:status order by vs.created_at",
+            nativeQuery = true
+    )
+    List<ViewStudy> findCreatorStudiesByStatus(@Param("creatorId") Integer creatorId, @Param("status") String status);
+
+    /**
+     * Studies created by a specific user that have no in-progress submissions
+     * — i.e. studies the user is eligible to start a new submission on.
+     * Parallels findAllByCenterWithoutInProgressSubmissions but creator-scoped.
+     */
+    @Query(
+            value = "select * from view_study where study_id in ( " +
+                    "select distinct study_id from view_current_hub_content_data " +
+                    "group by study_id " +
+                    "having count(submission_id) filter (where submission_id is null or submission_status != 'completed') = 0) " +
+                    "and status='Approved' and study_id in (select id from study where created_by=:creatorId) " +
+                    "order by study_id",
+            nativeQuery = true
+    )
+    List<ViewStudy> findAllByCreatorWithoutInProgressSubmissions(@Param("creatorId") Integer creatorId);
+
 
     List<ViewStudy> findAllBySubmissionStatusEqualsIgnoreCaseOrderByStudyId(String submissionStatus);
 

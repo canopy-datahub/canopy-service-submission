@@ -1,10 +1,12 @@
 package org.canopyplatform.canopy.submissionservice.controllers;
 
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
+import org.canopyplatform.canopy.submissionservice.models.dtos.AccessLevelUpdateDTO;
 import org.canopyplatform.canopy.submissionservice.models.dtos.StudyRegistrationDTO;
 import org.canopyplatform.canopy.submissionservice.models.dtos.StudyRegistrationDetailsDTO;
 import org.canopyplatform.canopy.submissionservice.models.dtos.UserStudyRegistrationDTO;
 import org.canopyplatform.canopy.submissionservice.services.DataFileService;
+import org.canopyplatform.canopy.submissionservice.services.StudyAccessService;
 import org.canopyplatform.canopy.submissionservice.services.StudyRegistrationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,7 @@ public class StudyRegistrationController {
     private final StudyRegistrationService studyRegistrationService;
     private final DataFileService datafileService;
     private final KeycloakAuthenticationService authenticationService;
+    private final StudyAccessService studyAccessService;
 
     @PostMapping("/curator/create")
     public ResponseEntity<Map<String, Integer>> uploadNewStudyAsCurator(@AuthenticationPrincipal Jwt jwt,
@@ -60,6 +63,7 @@ public class StudyRegistrationController {
     public ResponseEntity<StudyRegistrationDetailsDTO> getStudyPropertyValues(@AuthenticationPrincipal Jwt jwt,
                                                                               @RequestParam Integer studyId){
         authenticationService.checkCapability(jwt, "study.values.read");
+        studyAccessService.requireRead(jwt, studyId);
         return ResponseEntity.ok(studyRegistrationService.getStudyProperties(studyId));
     }
 
@@ -68,6 +72,7 @@ public class StudyRegistrationController {
                                                      @RequestBody StudyRegistrationDTO studyRegistrationDTO,
                                                      @RequestParam Boolean shouldSubmit){
         Integer userId = authenticationService.checkCapability(jwt, "study.curator.edit");
+        studyAccessService.requireEditStudy(jwt, studyRegistrationDTO.studyId());
         //TODO: track edits
         String response = studyRegistrationService.editStudyPropertyValues(studyRegistrationDTO, "Curator", shouldSubmit, userId);
         if(shouldSubmit){
@@ -82,6 +87,7 @@ public class StudyRegistrationController {
                                                     @RequestBody StudyRegistrationDTO studyRegistrationDTO,
                                                     @RequestParam Boolean shouldSubmit){
         Integer userId = authenticationService.checkCapability(jwt, "study.center.edit");
+        studyAccessService.requireEditStudy(jwt, studyRegistrationDTO.studyId());
         //TODO: track edits
         String response = studyRegistrationService.editStudyPropertyValues(studyRegistrationDTO, "Center", shouldSubmit, userId);
         return ResponseEntity.ok(response);
@@ -103,12 +109,30 @@ public class StudyRegistrationController {
         return ResponseEntity.ok(studies);
     }
 
+    /**
+     * Replace a study's access_level. Caller must hold study.access.update
+     * AND be the study's Creator (or a Curator/Admin override).
+     */
+    @PutMapping("/{studyId}/access")
+    public ResponseEntity<Void> updateStudyAccessLevel(@AuthenticationPrincipal Jwt jwt,
+                                                       @PathVariable("studyId") Integer studyId,
+                                                       @RequestBody AccessLevelUpdateDTO dto) {
+        authenticationService.checkCapability(jwt, "study.access.update");
+        studyAccessService.requireEditAccess(jwt, studyId);
+        studyRegistrationService.updateAccessLevel(studyId, dto.accessLevel());
+        // OpenSearch indexes need to know access_level for the public catalog
+        // filter — push the update so search reflects the new state on the
+        // next query.
+        studyRegistrationService.triggerOpenSearchRefresh();
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteStudy(@AuthenticationPrincipal Jwt jwt,
                                                    @RequestParam("studyId") Integer studyId,
                                                   @RequestParam("deleteStudy") Optional<Boolean> deleteStudy) {
-        //data submitter is only able to delete the saved(draft) studies
         authenticationService.checkCapability(jwt, "study.delete");
+        studyAccessService.requireDeleteStudy(jwt, studyId);
         //by default this function deletes the files and submissions associated with study.
         datafileService.deleteFilesAndSubmissions(studyId);
         log.info("Successfully deleted files and submissions for study id: {}", studyId);

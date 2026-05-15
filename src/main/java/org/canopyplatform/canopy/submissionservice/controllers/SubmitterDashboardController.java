@@ -3,6 +3,7 @@ package org.canopyplatform.canopy.submissionservice.controllers;
 import java.util.List;
 
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
+import org.canopyplatform.canopy.submissionservice.services.StudyAccessService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +20,7 @@ public class SubmitterDashboardController {
 
 	private final SubmitterService submitterService;
   private final KeycloakAuthenticationService authenticationService;
+  private final StudyAccessService studyAccessService;
 
 	@GetMapping("/getSubmissions")
 	public ResponseEntity<List<SubmissionInfoDTO>> getSubmissions(@AuthenticationPrincipal Jwt jwt,
@@ -33,7 +35,7 @@ public class SubmitterDashboardController {
 	public ResponseEntity<String> deleteSubmission(@AuthenticationPrincipal Jwt jwt,
 												   @RequestParam("submissionId") Integer submissionId) {
 		authenticationService.checkCapability(jwt, "submission.delete.own");
-		//TODO: submission authorization
+		studyAccessService.requireSubmitToBySubmission(jwt, submissionId);
 		submitterService.deleteSubmission(submissionId);
 		return new ResponseEntity<>("Submission successfully deleted", HttpStatus.OK);
 	}

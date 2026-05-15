@@ -42,13 +42,16 @@ public class SubmissionControllerTests {
 	@Mock
   private KeycloakAuthenticationService authenticationService;
 
+	@Mock
+	private StudyAccessService studyAccessService;
+
 	@InjectMocks
 	private SubmissionController submissionController;
 
     @BeforeEach
     void setup() {
         studyService = mock(SubmissionService.class);
-		submissionController = new SubmissionController(studyService, datafileService, bundleService, authenticationService);
+		submissionController = new SubmissionController(studyService, datafileService, bundleService, authenticationService, studyAccessService);
     }
 
 	@Test

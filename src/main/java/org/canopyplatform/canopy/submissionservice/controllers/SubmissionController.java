@@ -7,6 +7,7 @@ import java.util.NoSuchElementException;
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.DataFileNotFoundException;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.FileDeletionException;
+import org.canopyplatform.canopy.submissionservice.services.StudyAccessService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,7 @@ public class SubmissionController {
 	private final DataFileService datafileService;
 	private final BundleService bundleService;
   private final KeycloakAuthenticationService authenticationService;
+  private final StudyAccessService studyAccessService;
 
 	@GetMapping("/getStudies")
 	public ResponseEntity<List<StudiesDTO>> getStudiesByUserCenter(@AuthenticationPrincipal Jwt jwt) {
@@ -44,6 +46,7 @@ public class SubmissionController {
 	public ResponseEntity<?> createSubmission(@AuthenticationPrincipal Jwt jwt,
 											  @RequestParam("studyId") Integer studyId) {
 		Integer userId = authenticationService.checkCapability(jwt, "submission.create");
+		studyAccessService.requireSubmitTo(jwt, studyId);
 		//TODO: clean up error handling
 		try {
 			Integer submissionId = studyService.createSubmission(studyId, userId);
@@ -64,7 +67,7 @@ public class SubmissionController {
 	public ResponseEntity<?> submissionInfo(@AuthenticationPrincipal Jwt jwt,
 											@RequestParam("submissionId") Integer submissionId) {
 		authenticationService.checkCapability(jwt, "submission.read.own");
-		//TODO: submission authorization
+		studyAccessService.requireStudyManagementBySubmission(jwt, submissionId);
 		//TODO: clean up error handling
 		try {
 			SubmissionStepDTO submissioninfo = bundleService.getSubmissionInfo(submissionId);
@@ -79,6 +82,10 @@ public class SubmissionController {
 	public ResponseEntity<String> deleteFile(@AuthenticationPrincipal Jwt jwt,
 											 @RequestParam("fileIds") List<Integer> fileIds) {
 		authenticationService.checkCapability(jwt, "submission.file.delete");
+		// Strict creator-only — files belong to a submission, which belongs to a study.
+		for (Integer fileId : fileIds) {
+			studyAccessService.requireSubmitToByFile(jwt, fileId);
+		}
 		try{
 			boolean allDeleted = datafileService.deleteMultipleDatafiles(fileIds);
 			return ResponseEntity.status(HttpStatus.OK).body("Files were deleted: " + allDeleted);
@@ -93,7 +100,7 @@ public class SubmissionController {
 															@RequestParam("fileId") Integer fileId,
 															@RequestParam("newFile") MultipartFile file) {
 		Integer userId = authenticationService.checkCapability(jwt, "submission.file.replace");
-		//TODO: file authorization, maybe add status handling
+		studyAccessService.requireSubmitToByFile(jwt, fileId);
 		ValidationResultsDTO results = datafileService.replaceDataFile(fileId, file, userId);
 		return new ResponseEntity<>(results, HttpStatus.OK);
 	}

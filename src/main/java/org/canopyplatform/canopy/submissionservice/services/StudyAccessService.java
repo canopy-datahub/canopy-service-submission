@@ -7,7 +7,11 @@ import org.canopyplatform.canopy.submissionservice.auth.AuthUser;
 import org.canopyplatform.canopy.submissionservice.auth.UserAuthorizationException;
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
 import org.canopyplatform.canopy.submissionservice.models.AccessLevel;
+import org.canopyplatform.canopy.submissionservice.models.DataFile;
+import org.canopyplatform.canopy.submissionservice.models.DataSubmission;
 import org.canopyplatform.canopy.submissionservice.models.Study;
+import org.canopyplatform.canopy.submissionservice.repositories.DataFileRepository;
+import org.canopyplatform.canopy.submissionservice.repositories.DataSubmissionRepository;
 import org.canopyplatform.canopy.submissionservice.repositories.StudyRepository;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -45,6 +49,8 @@ public class StudyAccessService {
     private static final Set<String> OVERRIDE_ROLES = Set.of(ROLE_CURATOR, ROLE_ADMIN);
 
     private final StudyRepository studyRepository;
+    private final DataSubmissionRepository dataSubmissionRepository;
+    private final DataFileRepository dataFileRepository;
     private final KeycloakAuthenticationService authenticationService;
 
     /**
@@ -135,6 +141,40 @@ public class StudyAccessService {
             throw new UserAuthorizationException(
                     "User may not delete study " + studyId);
         }
+    }
+
+    // ---- submission-id / file-id convenience variants -------------------
+    //
+    // Many endpoints take a submissionId or fileId rather than a studyId.
+    // These helpers do the lookup and delegate to the studyId-based checks
+    // so controllers stay one-liners.
+
+    public void requireSubmitToBySubmission(Jwt jwt, Integer submissionId) {
+        requireSubmitTo(jwt, lookupStudyIdForSubmission(submissionId));
+    }
+
+    public void requireStudyManagementBySubmission(Jwt jwt, Integer submissionId) {
+        requireEditStudy(jwt, lookupStudyIdForSubmission(submissionId));
+    }
+
+    public void requireSubmitToByFile(Jwt jwt, Integer fileId) {
+        requireSubmitTo(jwt, lookupStudyIdForFile(fileId));
+    }
+
+    public Integer lookupStudyIdForSubmission(Integer submissionId) {
+        DataSubmission sub = dataSubmissionRepository.findDataSubmissionById(submissionId);
+        if (sub == null) {
+            throw new UserAuthorizationException(
+                    "Submission " + submissionId + " not found");
+        }
+        return sub.getStudyId();
+    }
+
+    public Integer lookupStudyIdForFile(Integer fileId) {
+        DataFile file = dataFileRepository.findById(fileId)
+                .orElseThrow(() -> new UserAuthorizationException(
+                        "Data file " + fileId + " not found"));
+        return lookupStudyIdForSubmission(file.getSubmissionId());
     }
 
     // ---- internals -------------------------------------------------------

@@ -1,6 +1,7 @@
 package org.canopyplatform.canopy.submissionservice.controllers;
 
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
+import org.canopyplatform.canopy.submissionservice.services.StudyAccessService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,13 +26,13 @@ public class ValidationController {
 	private final ValidationService validationService;
 	private final BundleService bundleService;
   private final KeycloakAuthenticationService authenticationService;
+  private final StudyAccessService studyAccessService;
 
 	@PostMapping("/validate")
 	public ResponseEntity<String> cdeValidation(@AuthenticationPrincipal Jwt jwt,
 												@RequestParam("submissionId") Integer submissionId) {
 		authenticationService.checkCapability(jwt, "submission.validate");
-		//TODO: submission authorization check
-		//TODO: clean up error handling
+		studyAccessService.requireSubmitToBySubmission(jwt, submissionId);
 		try {
 			boolean filesValidated = validationService.validateFiles(submissionId);
 
@@ -54,6 +55,7 @@ public class ValidationController {
 	public ValidationResultsDTO getValidationResults(@AuthenticationPrincipal Jwt jwt,
 													 @RequestParam("submissionId") Integer submissionId) {
 		authenticationService.checkCapability(jwt, "submission.validation.read");
+		studyAccessService.requireStudyManagementBySubmission(jwt, submissionId);
 		return validationService.getSubmissionValidationResults(submissionId);
 	}
 
@@ -62,7 +64,7 @@ public class ValidationController {
 															  @RequestBody ValidationResultsDTO dto,
 															  @RequestParam("submit") Boolean shouldSubmit) {
 		Integer userId = authenticationService.checkCapability(jwt, "submission.validation.acknowledge");
-		//TODO: submission authorization check
+		studyAccessService.requireSubmitToBySubmission(jwt, dto.getSubmissionId());
 		Boolean allFilesWithWarningsAcknowledged = validationService.updateFileAck(dto, userId);
 		boolean shouldIncrementStep = allFilesWithWarningsAcknowledged && shouldSubmit;
 		if (shouldIncrementStep) {

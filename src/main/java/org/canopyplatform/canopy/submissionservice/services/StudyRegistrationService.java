@@ -1,7 +1,6 @@
 package org.canopyplatform.canopy.submissionservice.services;
 
 import org.canopyplatform.canopy.submissionservice.auth.UserAuthorizationException;
-import org.canopyplatform.canopy.submissionservice.auth.UserNotFoundException;
 import org.canopyplatform.canopy.submissionservice.emails.EmailRequestService;
 import org.canopyplatform.canopy.submissionservice.emails.StudyRegEmailType;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.*;
@@ -355,17 +354,13 @@ public class StudyRegistrationService {
      */
     @Transactional(readOnly = true)
     public List<UserStudyRegistrationDTO> getUserStudiesByCenter(Integer userId, String status) {
-        Users users = usersRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("No user found for user ID " + userId));
-        if(users.getCenter() == null || users.getCenter().getId() == null){
-            throw new UserAuthorizationException("User is not aligned to a DCC");
-        }
-
-        // Find dcc studies by status, ordering by status, creation date
-        //check if status is valid
+        // Despite the historical name, the Data Submitter dashboard now scopes
+        // to studies the caller *created* rather than studies belonging to
+        // their center. Per-study Creator authorization makes center
+        // membership irrelevant to who can see/edit/upload to a study.
         statusRepository.findByName(status)
                 .orElseThrow(()  -> new StatusNotFoundException(String.format("Invalid Study Status: %s", status)));
-        List<ViewStudy> viewStudies = viewStudyRepository.findCenterStudiesByStatus(users.getCenter().getId(), status);
+        List<ViewStudy> viewStudies = viewStudyRepository.findCreatorStudiesByStatus(userId, status);
         return viewStudyCenterMapper.toDTOs(viewStudies);
     }
 
@@ -430,6 +425,22 @@ public class StudyRegistrationService {
      */
     public void triggerOpenSearchRefresh(){
         LambdaUtils.invokeFunction(awsLambdaClient,openSearchLambda);
+    }
+
+    /**
+     * Replaces a study's access_level. Caller authorization (study.access.update
+     * capability + Creator/Curator/Admin per-resource gate) is enforced by the
+     * controller before this method runs; this is a pure-data mutation.
+     */
+    @Transactional
+    public void updateAccessLevel(Integer studyId, AccessLevel newLevel) {
+        if (newLevel == null) {
+            throw new BadDataException("accessLevel is required");
+        }
+        Study study = studyRepository.findById(studyId)
+                .orElseThrow(() -> new StudyNotFoundException("Study not found for study ID " + studyId));
+        study.setAccessLevel(newLevel);
+        studyRepository.saveAndFlush(study);
     }
 
 }

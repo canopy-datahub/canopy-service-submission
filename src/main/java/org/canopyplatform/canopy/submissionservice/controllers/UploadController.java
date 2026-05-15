@@ -1,6 +1,7 @@
 package org.canopyplatform.canopy.submissionservice.controllers;
 
 import org.canopyplatform.canopy.submissionservice.auth.core.KeycloakAuthenticationService;
+import org.canopyplatform.canopy.submissionservice.services.StudyAccessService;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.BadDataException;
 import org.canopyplatform.canopy.submissionservice.models.dtos.S3FileDTO;
 import org.canopyplatform.canopy.submissionservice.models.dtos.UploadFilesDTO;
@@ -32,13 +33,14 @@ public class UploadController {
 	private final DataFileService datafileService;
 	private final SFTPService sftpService;
   private final KeycloakAuthenticationService authenticationService;
+  private final StudyAccessService studyAccessService;
 
 
 	@GetMapping("/getFiles")
 	public ResponseEntity<?> getFiles(@AuthenticationPrincipal Jwt jwt,
 									  @RequestParam("submissionId") Integer submissionId) {
 		authenticationService.checkCapability(jwt, "submission.file.list");
-		//TODO: clean up error handling
+		studyAccessService.requireStudyManagementBySubmission(jwt, submissionId);
 		try {
 			UploadFilesDTO uploadedFiles = datafileService.getUploadedFiles(submissionId);
 			return ResponseEntity.ok(uploadedFiles);
@@ -53,6 +55,7 @@ public class UploadController {
 													   @RequestParam("files") List<MultipartFile> files,
 													   @RequestParam("submissionId") Integer submissionId) {
 		Integer userId = authenticationService.checkCapability(jwt, "submission.file.upload");
+		studyAccessService.requireSubmitToBySubmission(jwt, submissionId);
 		List<S3FileDTO> s3FileDTOS = datafileService.createDataFiles(files, submissionId, userId);
 		return ResponseEntity.ok().body(s3FileDTOS);
 	}
@@ -61,7 +64,7 @@ public class UploadController {
 	public ResponseEntity<String> createBundles(@AuthenticationPrincipal Jwt jwt,
 												@RequestParam("submissionId") Integer submissionId) {
 		Integer userId = authenticationService.checkCapability(jwt, "submission.bundle.create");
-		//TODO: clean up error handling
+		studyAccessService.requireSubmitToBySubmission(jwt, submissionId);
 			boolean bundlesCreated = bundleService.createBundles(submissionId);
 			String stepDescription = "Upload Files";
 			bundleService.updateStepId(submissionId, stepDescription, userId);

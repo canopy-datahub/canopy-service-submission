@@ -5,11 +5,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.canopyplatform.canopy.submissionservice.auth.UserNotFoundException;
 import org.canopyplatform.canopy.submissionservice.emails.DataIngestEmailType;
 import org.canopyplatform.canopy.submissionservice.emails.EmailRequestService;
 import org.canopyplatform.canopy.submissionservice.exceptions.custom.StatusNotFoundException;
-import org.canopyplatform.canopy.submissionservice.exceptions.custom.SubmitterCenterException;
 import org.canopyplatform.canopy.submissionservice.mappers.ViewStudyMapper;
 import org.canopyplatform.canopy.submissionservice.models.*;
 import org.canopyplatform.canopy.submissionservice.repositories.*;
@@ -33,12 +31,10 @@ public class SubmissionService {
     private final EmailRequestService emailRequestService;
 
     public List<StudiesDTO> getStudiesByUserCenter(Integer userId) throws StudyPropertyValuesRetrievalException{
-        Users user = usersRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(String.format("User ID %d not found", userId)));
-        if(user.getCenter() == null || user.getCenter().getName() == null) {
-            throw new SubmitterCenterException("Please contact support for center alignment");
-        }
-        List<ViewStudy> studies = viewStudyRepository.findAllByCenterWithoutInProgressSubmissions(user.getCenter().getName());
+        // The method name predates Creator authorization. The dropdown now
+        // surfaces "studies I created" (and that are Approved + free of an
+        // in-progress submission). Center membership is no longer a gate.
+        List<ViewStudy> studies = viewStudyRepository.findAllByCreatorWithoutInProgressSubmissions(userId);
         return viewStudyMapper.toDTOs(studies);
     }
     /**
