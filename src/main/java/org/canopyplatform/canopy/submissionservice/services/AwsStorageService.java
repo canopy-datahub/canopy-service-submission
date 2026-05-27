@@ -115,23 +115,11 @@ public class AwsStorageService implements StorageService {
             s3File.setServerSideEncryption(completedResponse.serverSideEncryptionAsString());
             s3File.setFilePath(s3InitialUploadBucket + "/" + s3File.getFileKey());
 
-            //after file upload is complete, make additional requests for file metadata
-            CompletableFuture<GetObjectAttributesResponse> checksumResponse = client.getObjectAttributes(
-                    GetObjectAttributesRequest.builder()
-                            .bucket(s3InitialUploadBucket)
-                            .key(s3File.getFileKey())
-                            .objectAttributes(ObjectAttributes.CHECKSUM)
-                            .build()
-            );
-
-            //set file metadata once additional requests complete
-            GetObjectAttributesResponse attrResponse = checksumResponse.get();
-            if (attrResponse.checksum() != null) {
-                String checksum = attrResponse.checksum().checksumSHA256();
-                s3File.setChecksumHash(checksum);
-            } else {
-                log.warn("No checksum attribute returned from S3 for key: {}", s3File.getFileKey());
-            }
+            // Read the checksum from the upload response rather than a separate
+            // getObjectAttributes call: that call's response is handled on a CRT
+            // event-loop thread whose small stack overflows initializing
+            // GetObjectAttributesResponse, permanently breaking the class.
+            s3File.setChecksumHash(completedResponse.checksumSHA256());
             s3File.setUploadSuccessful(true);
             return s3File;
 
@@ -180,7 +168,13 @@ public class AwsStorageService implements StorageService {
         s3File.setS3Etag(completedResponse.eTag().replace("\"", ""));
         s3File.setServerSideEncryption(completedResponse.serverSideEncryptionAsString());
         s3File.setFilePath(s3InitialUploadBucket + "/" + s3File.getFileKey());
-        getAndSetChecksumFromS3(s3File);
+        // Read the checksum from the upload response rather than issuing a separate
+        // getObjectAttributes call: that call's response is handled on a CRT
+        // event-loop thread whose small stack overflows while initializing
+        // GetObjectAttributesResponse, permanently breaking the class so every
+        // checksum fetch fails and the upload is wrongly marked unsuccessful.
+        s3File.setChecksumHash(completedResponse.checksumSHA256());
+        s3File.setUploadSuccessful(true);
 
         return s3File;
     }
@@ -202,7 +196,9 @@ public class AwsStorageService implements StorageService {
         s3File.setS3Etag(completedResponse.eTag().replace("\"", ""));
         s3File.setServerSideEncryption(completedResponse.serverSideEncryptionAsString());
         s3File.setFilePath(uploadPortalBucket + "/" + s3File.getFileKey());
-        getAndSetChecksumFromS3(s3File, uploadPortalBucket);
+        // See uploadFile: avoid the CRT-thread getObjectAttributes checksum call.
+        s3File.setChecksumHash(completedResponse.checksumSHA256());
+        s3File.setUploadSuccessful(true);
         return s3File;
     }
 
@@ -269,7 +265,7 @@ public class AwsStorageService implements StorageService {
                 return Optional.empty();
             }
         } catch (CompletionException | CancellationException e){
-            log.error("Error uploading file to S3");
+            log.error("Error uploading file to S3", e);
             return Optional.empty();
         }
     }

@@ -112,10 +112,12 @@
       <version>3.14.0</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/software.amazon.awssdk/lambda -->
+    <!-- Version managed by the spring-cloud-aws BOM (2.21.46) so it matches the
+         rest of the AWS SDK; a lone 2.25.36 here put a mismatched jar on a
+         2.21.46 core classpath. -->
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>lambda</artifactId>
-      <version>2.25.36</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
