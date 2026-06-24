@@ -1,5 +1,7 @@
 package org.canopyplatform.canopy.submissionservice.models.dtos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import org.canopyplatform.canopy.submissionservice.models.AccessLevel;
 
 /**
@@ -9,6 +11,6 @@ import org.canopyplatform.canopy.submissionservice.models.AccessLevel;
  * Curator/Admin override) — enforced by StudyAccessService.requireEditAccess.
  */
 public record AccessLevelUpdateDTO(
-        AccessLevel accessLevel
+        @JsonProperty("access_level") AccessLevel accessLevel
 ) {
 }

@@ -2,12 +2,14 @@ package org.canopyplatform.canopy.submissionservice.models.dtos;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import org.canopyplatform.canopy.submissionservice.models.AccessLevel;
 
 public record StudyRegistrationDTO(
         Integer studyId,
         List<StudyPropertyValueDTO> studyPropertyValues,
-        AccessLevel accessLevel
+        @JsonProperty("access_level") AccessLevel accessLevel
 ) {
     /**
      * Legacy two-arg shape preserved so older callers (tests, scripted JSON
