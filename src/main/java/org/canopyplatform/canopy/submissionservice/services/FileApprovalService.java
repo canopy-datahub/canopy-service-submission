@@ -65,6 +65,7 @@ public class FileApprovalService {
     private final UsersRepository usersRepository;
     private final DownloadService downloadService;
     private final StudyPropertyValueRepository studyPropertyValueRepository;
+    private final EntityPropertyRepository entityPropertyRepository;
     private final ApplicationEventPublisher eventPublisher;
 
 	@Value("${s3.download-directory}")
@@ -383,10 +384,25 @@ public class FileApprovalService {
 	}
 
 	private void setHasDataFilesFlag(Integer studyId) {
-		//hasDataFilesPropertyValue is created and set to no 4
-		//update has_datafile flag once file is approved
+		//hasDataFilesPropertyValue is created and set to "No" at study registration
+		//update has_data_files flag once a file is approved
 			StudyPropertyValue studyPropertyValue = studyPropertyValueRepository
 					.findByEntityProperty_NameAndStudyId(Constants.STUDY_PROP_HAS_DATAFILES, studyId);
+			if(studyPropertyValue == null) {
+				// A study registered through the normal flow always has this row. Studies created
+				// outside that flow (e.g. seeded/injected directly) may be missing it; create it here
+				// rather than failing the entire approval with a NullPointerException.
+				log.warn("Missing '{}' property for studyId={}; creating it.", Constants.STUDY_PROP_HAS_DATAFILES, studyId);
+				EntityProperty entityProperty = entityPropertyRepository.findByName(Constants.STUDY_PROP_HAS_DATAFILES)
+						.orElseThrow(() -> new CategoryNotFoundException(
+								"Could not find entity property: " + Constants.STUDY_PROP_HAS_DATAFILES));
+				studyPropertyValue = new StudyPropertyValue();
+				studyPropertyValue.setStudyId(studyId);
+				studyPropertyValue.setEntityProperty(entityProperty);
+				studyPropertyValue.setPropertyValue("Yes");
+				studyPropertyValueRepository.save(studyPropertyValue);
+				return;
+			}
 			if(studyPropertyValue.getPropertyValue().equals("No")){
 				studyPropertyValue.setPropertyValue("Yes");
 				studyPropertyValueRepository.save(studyPropertyValue);
