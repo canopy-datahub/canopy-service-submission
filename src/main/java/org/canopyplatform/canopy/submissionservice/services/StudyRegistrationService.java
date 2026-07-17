@@ -232,6 +232,14 @@ public class StudyRegistrationService {
                 throw new CategoryNotFoundException("No entity property found for study property value: " + spv);
             }
             EntityProperty ep = spvEntityPropertyOpt.get();
+            // A null value means the client sent a property with no value (e.g. a form
+            // field cleared/left blank that still made it into the payload). Skip it
+            // instead of NPE'ing on trim(); log which field so the source can be fixed.
+            if (spv.getPropertyValue() == null) {
+                log.warn("Skipping study property '{}' (entityPropertyId={}) for study {}: received null property value",
+                        ep.getName(), ep.getId(), studyRegistrationDTO.studyId());
+                continue;
+            }
             spv.setPropertyValue(spv.getPropertyValue().trim());
             if (ep.getCodeListId() == null) {
                 editOneToOnePropertyValue(spv, ep, studyRegistrationDTO.studyId(), userId);
